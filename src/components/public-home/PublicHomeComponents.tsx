@@ -120,32 +120,78 @@ const formatTimer = (seconds: number) => {
   return `${minutes}:${restSeconds.toString().padStart(2, '0')}`;
 };
 
+type JsonRecord = Record<string, unknown>;
+
+const isRecord = (value: unknown): value is JsonRecord => typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const readNumber = (value: unknown, keys: string[]) => {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  for (const key of keys) {
+    const nextValue = value[key];
+
+    if (typeof nextValue === 'number' && Number.isFinite(nextValue)) {
+      return nextValue;
+    }
+
+    if (typeof nextValue === 'string') {
+      const parsedValue = Number(nextValue);
+
+      if (Number.isFinite(parsedValue)) {
+        return parsedValue;
+      }
+    }
+  }
+
+  return undefined;
+};
+
+const getResponseData = (error: unknown) => {
+  if (!isRecord(error) || !isRecord(error.response)) {
+    return undefined;
+  }
+
+  return error.response.data;
+};
+
+const getRetryAfterSeconds = (error: unknown) => {
+  const data = getResponseData(error);
+  const retryAfterSeconds = readNumber(data, ['retries_in', 'retry_after', 'retryAfter', 'retryAfterSeconds', 'seconds']);
+
+  return retryAfterSeconds && retryAfterSeconds > 0 ? Math.ceil(retryAfterSeconds) : undefined;
+};
+
 const getErrorMessage = (error: unknown) => {
+  const data = getResponseData(error);
+
+  if (typeof data === 'string') {
+    return data;
+  }
+
+  if (isRecord(data)) {
+    if (typeof data.title === 'string') {
+      return data.title;
+    }
+
+    if (typeof data.detail === 'string') {
+      return data.detail;
+    }
+
+    if (typeof data.error_description === 'string' && data.error_description !== 'retry_after') {
+      return data.error_description;
+    }
+  }
+
   if (error instanceof Error && error.message) {
     return error.message;
   }
 
-  if (typeof error === 'object' && error && 'response' in error) {
-    const response = (error as { response?: { data?: unknown } }).response;
-    const data = response?.data;
-
-    if (typeof data === 'string') {
-      return data;
-    }
-
-    if (typeof data === 'object' && data) {
-      if ('title' in data && typeof data.title === 'string') {
-        return data.title;
-      }
-
-      if ('detail' in data && typeof data.detail === 'string') {
-        return data.detail;
-      }
-    }
-  }
-
   return 'Не удалось выполнить запрос. Попробуйте еще раз.';
 };
+
+const getRetryAfterMessage = (seconds: number) => `Новый код можно запросить через ${formatTimer(seconds)}`;
 
 type AuthCodeInfo = {
   attemptCount?: number;
@@ -252,6 +298,23 @@ export const LoginEntryCard = ({ focusRequest, onAuthenticated }: LoginEntryCard
 
   const isPhoneComplete = phoneDigits.length === PHONE_DIGITS_LENGTH;
   const formattedPhone = useMemo(() => formatPhoneDigits(phoneDigits), [phoneDigits]);
+
+  const updateCachedAuthSession = (session: AuthSession) => {
+    setCachedAuthSession(session);
+    saveCachedAuthSession(session);
+  };
+
+  const updateRetryCooldown = (session: AuthSession, seconds: number) => {
+    const nextSession = {
+      ...session,
+      retryAvailableAt: Date.now() + seconds * 1000,
+    };
+
+    updateCachedAuthSession(nextSession);
+    setAuthSession(nextSession);
+
+    return nextSession;
+  };
 
   useEffect(() => {
     if (!focusRequest) {
@@ -378,10 +441,21 @@ export const LoginEntryCard = ({ focusRequest, onAuthenticated }: LoginEntryCard
       }
 
       const nextSession = await requestAuthSession(phoneDigits);
-      setCachedAuthSession(nextSession);
-      saveCachedAuthSession(nextSession);
+      updateCachedAuthSession(nextSession);
       setAuthSession(nextSession);
     } catch (error) {
+      const retryAfterSeconds = getRetryAfterSeconds(error);
+
+      if (retryAfterSeconds) {
+        if (cachedAuthSession?.phoneDigits === phoneDigits) {
+          updateRetryCooldown(cachedAuthSession, retryAfterSeconds);
+        } else {
+          setAuthError(getRetryAfterMessage(retryAfterSeconds));
+        }
+
+        return;
+      }
+
       setAuthError(getErrorMessage(error));
     } finally {
       setIsRequestingCode(false);
@@ -449,10 +523,10 @@ export const LoginEntryCard = ({ focusRequest, onAuthenticated }: LoginEntryCard
           onAuthenticated={onAuthenticated}
           onClose={() => setAuthSession(null)}
           onError={setAuthError}
+          onRetryCooldown={(seconds) => updateRetryCooldown(authSession, seconds)}
           onResend={async () => {
             const nextSession = await requestAuthSession(authSession.phoneDigits);
-            setCachedAuthSession(nextSession);
-            saveCachedAuthSession(nextSession);
+            updateCachedAuthSession(nextSession);
             setAuthSession(nextSession);
             return nextSession;
           }}
@@ -470,11 +544,22 @@ type AuthConfirmationModalProps = {
   onAuthenticated: () => void;
   onClose: () => void;
   onError: (message: string) => void;
+  onRetryCooldown: (seconds: number) => AuthSession;
   onResend: () => Promise<AuthSession>;
   phone: string;
 };
 
-const AuthConfirmationModal = ({ authKey, codeInfo, initialCountdown, onAuthenticated, onClose, onError, onResend, phone }: AuthConfirmationModalProps) => {
+const AuthConfirmationModal = ({
+  authKey,
+  codeInfo,
+  initialCountdown,
+  onAuthenticated,
+  onClose,
+  onError,
+  onResend,
+  onRetryCooldown,
+  phone,
+}: AuthConfirmationModalProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const codeLength = codeInfo.codeLength || 6;
   const [code, setCode] = useState('');
@@ -488,6 +573,18 @@ const AuthConfirmationModal = ({ authKey, codeInfo, initialCountdown, onAuthenti
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   useEffect(() => {
     if (countdown <= 0) {
@@ -549,6 +646,16 @@ const AuthConfirmationModal = ({ authKey, codeInfo, initialCountdown, onAuthenti
       setCountdown(getRetryCountdown(nextSession));
       inputRef.current?.focus();
     } catch (error) {
+      const retryAfterSeconds = getRetryAfterSeconds(error);
+
+      if (retryAfterSeconds) {
+        onRetryCooldown(retryAfterSeconds);
+        setCountdown(retryAfterSeconds);
+        setModalError('');
+        inputRef.current?.focus();
+        return;
+      }
+
       const message = getErrorMessage(error);
       setModalError(message);
       onError(message);
@@ -558,11 +665,19 @@ const AuthConfirmationModal = ({ authKey, codeInfo, initialCountdown, onAuthenti
   };
 
   return (
-    <div className="auth-modal-overlay" role="presentation">
+    <div
+      className="auth-modal-overlay"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose();
+        }
+      }}
+    >
       <section className="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-code-title">
         <div className="auth-modal__pattern" aria-hidden="true" />
         <button className="auth-modal__close" type="button" aria-label="Закрыть окно подтверждения" onClick={onClose}>
-          ×
+          <img src={iconCloseDark} alt="" aria-hidden="true" />
         </button>
 
         <div className="auth-modal__content">
