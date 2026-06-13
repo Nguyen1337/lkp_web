@@ -69,6 +69,9 @@ const fastPaySlides = [
   },
 ] as const;
 
+const FAST_PAY_AUTOPLAY_DELAY_MS = 5000;
+const fastPayCarouselSlides = [fastPaySlides[0], fastPaySlides[1], fastPaySlides[0], fastPaySlides[1]] as const;
+
 type ServiceCard = (typeof serviceCards)[number];
 
 const normalizePhoneDigits = (value: string) => {
@@ -752,28 +755,31 @@ export const FastPayBanner = ({ onDismiss }: FastPayBannerProps) => {
   const [trackIndex, setTrackIndex] = useState(0);
   const [isResettingTrack, setIsResettingTrack] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
-  const renderedSlides = useMemo(() => [...fastPaySlides, fastPaySlides[0]], []);
-  const safeTrackIndex = trackIndex > fastPaySlides.length ? trackIndex % fastPaySlides.length : trackIndex;
-  const activeSlide = safeTrackIndex % fastPaySlides.length;
-  const activeVariant = fastPaySlides[activeSlide].variant;
+  const [isCarouselPaused, setIsCarouselPaused] = useState(false);
+  const [autoPlayResetKey, setAutoPlayResetKey] = useState(0);
+  const renderedSlides = useMemo(() => [...fastPayCarouselSlides, fastPayCarouselSlides[0]], []);
+  const slideCount = fastPayCarouselSlides.length;
+  const safeTrackIndex = trackIndex > slideCount ? trackIndex % slideCount : trackIndex;
+  const activeSlide = safeTrackIndex % slideCount;
+  const activeVariant = fastPayCarouselSlides[activeSlide].variant;
 
   useEffect(() => {
-    if (isClosing) {
+    if (isClosing || isCarouselPaused || document.hidden) {
       return;
     }
 
-    const timerId = window.setInterval(() => {
+    const timerId = window.setTimeout(() => {
       setTrackIndex((index) => {
         if (document.hidden) {
-          return index > fastPaySlides.length ? index % fastPaySlides.length : index;
+          return index > slideCount ? index % slideCount : index;
         }
 
-        return index >= fastPaySlides.length ? 1 : index + 1;
+        return index >= slideCount ? 1 : index + 1;
       });
-    }, 3000);
+    }, FAST_PAY_AUTOPLAY_DELAY_MS);
 
-    return () => window.clearInterval(timerId);
-  }, [isClosing]);
+    return () => window.clearTimeout(timerId);
+  }, [autoPlayResetKey, isCarouselPaused, isClosing, slideCount, trackIndex]);
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -781,16 +787,17 @@ export const FastPayBanner = ({ onDismiss }: FastPayBannerProps) => {
         return;
       }
 
-      setTrackIndex((index) => (index > fastPaySlides.length ? index % fastPaySlides.length : index));
+      setTrackIndex((index) => (index > slideCount ? index % slideCount : index));
+      setAutoPlayResetKey((key) => key + 1);
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
+  }, [slideCount]);
 
   const handleTrackTransitionEnd = () => {
-    if (trackIndex !== fastPaySlides.length) {
+    if (trackIndex !== slideCount) {
       return;
     }
 
@@ -808,9 +815,10 @@ export const FastPayBanner = ({ onDismiss }: FastPayBannerProps) => {
     }
 
     setTrackIndex((currentIndex) => {
-      const currentSlide = currentIndex % fastPaySlides.length;
-      return index > currentSlide ? currentIndex + 1 : currentIndex + fastPaySlides.length - currentSlide;
+      const currentSlide = currentIndex % slideCount;
+      return index > currentSlide ? currentIndex + index - currentSlide : currentIndex + slideCount - currentSlide + index;
     });
+    setAutoPlayResetKey((key) => key + 1);
   };
 
   const handleClose = () => {
@@ -827,6 +835,14 @@ export const FastPayBanner = ({ onDismiss }: FastPayBannerProps) => {
         isResettingTrack ? ' is-resetting' : ''
       }`}
       aria-label="Карусель баннеров"
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) {
+          setIsCarouselPaused(false);
+        }
+      }}
+      onFocus={() => setIsCarouselPaused(true)}
+      onMouseEnter={() => setIsCarouselPaused(true)}
+      onMouseLeave={() => setIsCarouselPaused(false)}
     >
       <div
         className="fast-pay-banner__track"
@@ -850,12 +866,12 @@ export const FastPayBanner = ({ onDismiss }: FastPayBannerProps) => {
         ))}
       </div>
       <div className="fast-pay-banner__dots" aria-label="Выбор баннера">
-        {fastPaySlides.map((item, index) => (
+        {fastPayCarouselSlides.map((item, index) => (
           <button
             aria-current={activeSlide === index}
             aria-label={`Показать баннер ${index + 1}: ${item.title}`}
             className={activeSlide === index ? 'is-active' : ''}
-            key={item.title}
+            key={`${item.variant}-${index}`}
             onClick={() => handleSlideSelect(index)}
             type="button"
           />
