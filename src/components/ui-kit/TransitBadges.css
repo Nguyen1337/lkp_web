@@ -1,0 +1,222 @@
+.subway-line-badge,
+.ticket-badge,
+.freeze-status-badge,
+.payment-system-badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+}
+
+.subway-line-badge {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #e5e5e5;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.subway-line-badge--default {
+  background: #e5e5e5;
+}
+
+.subway-line-badge--1,
+.subway-line-badge--14 {
+  background: #d51317;
+}
+
+.subway-line-badge--2 {
+  background: #4aaf50;
+}
+
+.subway-line-badge--3,
+.subway-line-badge--13 {
+  background: #0072ba;
+}
+
+.subway-line-badge--4,
+.subway-line-badge--4a {
+  background: #1ebcef;
+}
+
+.subway-line-badge--5 {
+  background: #915133;
+}
+
+.subway-line-badge--6 {
+  background: #ef7d00;
+}
+
+.subway-line-badge--7 {
+  background: #943e90;
+}
+
+.subway-line-badge--8,
+.subway-line-badge--8a {
+  background: #ffdd00;
+  color: #333;
+}
+
+.subway-line-badge--9 {
+  background: #adabac;
+}
+
+.subway-line-badge--10 {
+  background: #b4cc04;
+}
+
+.subway-line-badge--11,
+.subway-line-badge--11a {
+  background: #87cccf;
+}
+
+.subway-line-badge--12 {
+  background: #bac8e8;
+}
+
+.subway-line-badge--15 {
+  background: #ee7bae;
+}
+
+.subway-line-badge--16 {
+  background: #007762;
+}
+
+.subway-line-badge--d1,
+.subway-line-badge--d2,
+.subway-line-badge--d3,
+.subway-line-badge--d4,
+.subway-line-badge--d4a,
+.subway-line-badge--d5,
+.subway-line-badge--mdc,
+.subway-line-badge--km {
+  width: 28px;
+  height: 14px;
+  border-radius: 3px;
+  font-size: 8px;
+}
+
+.subway-line-badge--d1 {
+  background: #f7c84b;
+  color: #dc342f;
+}
+
+.subway-line-badge--d2 {
+  background: #f06292;
+}
+
+.subway-line-badge--d3 {
+  background: #f58220;
+}
+
+.subway-line-badge--d4,
+.subway-line-badge--d4a {
+  background: #52b788;
+}
+
+.subway-line-badge--d5 {
+  background: #9bc53d;
+  color: #333;
+}
+
+.subway-line-badge--mdc,
+.subway-line-badge--km {
+  background: #333;
+}
+
+.subway-line-badge--bus {
+  background: #2f80d1;
+}
+
+.ticket-badge {
+  width: 24px;
+  height: 16px;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.ticket-badge--union {
+  background: #da2032;
+}
+
+.ticket-badge--tat {
+  background: #008bd2;
+}
+
+.ticket-badge--bus {
+  background: #0072ba;
+}
+
+.ticket-badge--wallet {
+  background: #f4b42b;
+}
+
+.ticket-badge--unrecorded,
+.ticket-badge--default {
+  background: #e5e5e5;
+  color: #7b7f85;
+}
+
+.ticket-badge--gorod {
+  background:
+    linear-gradient(135deg, transparent 0 40%, #f26722 40% 60%, transparent 60%),
+    linear-gradient(45deg, #2f80ed, #34c759 55%, #8b5cf6);
+}
+
+.freeze-status-badge {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #21b8cd;
+}
+
+.freeze-status-badge--possible {
+  background: #defbff;
+}
+
+.freeze-status-badge--disable {
+  background: #e4e8ea;
+}
+
+.freeze-status-badge span {
+  width: 10px;
+  height: 10px;
+  border: 1.7px solid #fff;
+  border-radius: 999px;
+}
+
+.freeze-status-badge--disable span {
+  border-color: #7b7f85;
+  opacity: 0.5;
+}
+
+.payment-system-badge {
+  min-width: 42px;
+  height: 28px;
+  padding: 0 7px;
+  border-radius: 4px;
+  background: #fff;
+  color: #00925a;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.payment-system-badge--visa {
+  color: #1434cb;
+}
+
+.payment-system-badge--mastercard {
+  color: #eb001b;
+}
+
+.payment-system-badge--unknown {
+  background: #f8f8f8;
+}

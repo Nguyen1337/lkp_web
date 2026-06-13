@@ -1,0 +1,6 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id=" Button icon">
+<rect width="24" height="24" rx="12" fill="var(--fill-0, #FC3F1D)"/>
+<path id="Vector" d="M13.4949 18.5334H15.8666V4.93336H12.4141C8.94152 4.93336 7.12019 6.71075 7.12019 9.33688C7.12019 11.6036 8.30105 12.8817 10.3926 14.2696L11.6635 15.1084L10.0323 13.7404L6.79995 18.5334H9.37184L12.8244 13.3809L11.6235 12.5821C10.1724 11.6035 9.46191 10.8447 9.46191 9.19709C9.46191 7.74922 10.4827 6.77066 12.4241 6.77066H13.4849V18.5334H13.4949Z" fill="var(--fill-0, white)"/>
+</g>
+</svg>

@@ -1,0 +1,97 @@
+@import './styles/tokens.css';
+
+/* Moscow Sans Font */
+@font-face {
+  font-family: 'Moscow Sans';
+  src: url('./assets/MoscowSansNEW/MoscowSansNEW-Light.otf') format('opentype');
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Moscow Sans';
+  src: url('./assets/MoscowSansNEW/MoscowSansNEW-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Moscow Sans';
+  src: url('./assets/MoscowSansNEW/MoscowSansNEW-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Moscow Sans';
+  src: url('./assets/MoscowSansNEW/MoscowSansNEW-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Moscow Sans';
+  src: url('./assets/MoscowSansNEW/MoscowSansNEW-ExtraBold.otf') format('opentype');
+  font-weight: 900;
+  font-display: swap;
+}
+
+:root {
+  font-family: var(--font-sans);
+  color: var(--text);
+  background: var(--page-bg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  width: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--page-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--primary-dark);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin: 0;
+}
+
+code {
+  background: var(--surface-muted);
+  border-radius: 4px;
+  padding: 0.2rem 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
