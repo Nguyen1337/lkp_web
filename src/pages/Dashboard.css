@@ -49,24 +49,13 @@
 }
 
 .authorized-profile-button__icon {
-  width: 18px;
-  height: 18px;
-  border: 1.8px solid var(--text);
-  border-radius: 999px;
-  position: relative;
-}
-
-.authorized-profile-button__icon::after {
-  content: "";
-  position: absolute;
-  right: 3px;
-  bottom: 2px;
-  left: 3px;
-  height: 5px;
-  border: 1.6px solid var(--text);
-  border-top-left-radius: 999px;
-  border-top-right-radius: 999px;
-  border-bottom: 0;
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: var(--text);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
 }
 
 .authorized-logout-button {
@@ -96,11 +85,19 @@
   width: min(1440px, calc(100% - 64px));
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 464px 464px 464px;
+  grid-template-columns: 464px minmax(0, 952px);
+  gap: 24px;
+  align-items: start;
+}
+
+.authorized-content {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 464px));
   grid-template-areas:
-    "payments services services"
-    "payments banner banner"
-    "payments topup history";
+    "services services"
+    "banner banner"
+    "topup history";
   gap: 24px;
   align-items: start;
 }
@@ -115,7 +112,12 @@
 
 .payment-methods-panel {
   grid-area: payments;
+  grid-column: 1;
   padding: 24px;
+}
+
+.authorized-content {
+  grid-column: 2;
 }
 
 .authorized-panel__header {
@@ -162,10 +164,10 @@
 }
 
 .payment-card {
-  min-height: 112px;
-  padding: 12px;
-  border-radius: 12px;
-  background: var(--figma-color-background-tertiary);
+  padding: 8px;
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 0 10px rgba(101, 103, 114, 0.12);
   overflow: hidden;
 }
 
@@ -236,9 +238,13 @@
 }
 
 .payment-card__content {
+  min-height: 76px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--surface);
   display: flex;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
 }
 
 .payment-card__content p {
@@ -334,14 +340,23 @@
   color: #e05454;
 }
 
+.payment-card__details {
+  display: grid;
+  gap: 4px;
+  margin-top: 4px;
+}
+
 .payment-card__row {
   min-height: 28px;
-  margin-top: 12px;
+  padding: 0 8px;
   display: flex;
   align-items: center;
   gap: 8px;
+  border-radius: 4px;
+  background: var(--figma-color-background-tertiary);
   color: var(--text);
   font-size: 14px;
+  line-height: 18px;
 }
 
 .payment-card__badge {
@@ -367,15 +382,36 @@
   margin-left: auto;
   color: var(--text-muted);
   font-size: 12px;
+  line-height: 14px;
+  white-space: nowrap;
 }
 
 .payment-card__warning {
-  margin: 10px -12px -12px;
-  padding: 8px 12px;
+  margin: 4px 0 0;
+  padding: 8px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   color: #ef7e24;
-  background: rgba(254, 243, 234, 0.7);
+  background: #ffecdc;
   font-size: 12px;
-  line-height: 16px;
+  line-height: 14px;
+}
+
+.payment-card__warning::before {
+  content: "i";
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.4px solid currentColor;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 1;
 }
 
 .payment-card__warning--blocker {
@@ -820,6 +856,10 @@
       "banner banner"
       "topup history";
     gap: 24px 16px;
+  }
+
+  .authorized-content {
+    display: contents;
   }
 
   .authorized-services {

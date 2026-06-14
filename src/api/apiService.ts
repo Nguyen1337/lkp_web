@@ -46,6 +46,7 @@ class ApiService {
   private readonly authApi: AxiosInstance;
   private readonly passengerApi: AxiosInstance;
   private readonly maasApi: AxiosInstance;
+  private dashboardBootstrapRequest: Promise<DashboardBootstrapResponse> | null = null;
 
   constructor() {
     this.api = axios.create({
@@ -191,6 +192,18 @@ class ApiService {
   }
 
   async getDashboardBootstrap(): Promise<DashboardBootstrapResponse> {
+    if (this.dashboardBootstrapRequest) {
+      return this.dashboardBootstrapRequest;
+    }
+
+    this.dashboardBootstrapRequest = this.fetchDashboardBootstrap().finally(() => {
+      this.dashboardBootstrapRequest = null;
+    });
+
+    return this.dashboardBootstrapRequest;
+  }
+
+  private async fetchDashboardBootstrap(): Promise<DashboardBootstrapResponse> {
     const requests = {
       accountInfo: this.getAccountInfo(),
       carriers: this.getLinkedCarriers(),

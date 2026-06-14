@@ -29,11 +29,19 @@ type JsonRecord = Record<string, unknown>;
 type PaymentCardType = 'troika' | 'virtual-troika' | 'sbp' | 'bank' | 'social' | 'virtual-social';
 type PaymentSeverity = 'active' | 'warning' | 'blocker';
 
+type PaymentMethodDetail = {
+  id: string;
+  label: string;
+  value?: string;
+  ticketType: TicketBadgeType;
+};
+
 type PaymentMethodView = {
   id: string;
   title: string;
   primary: string;
   secondary: string;
+  details?: PaymentMethodDetail[];
   meta?: string;
   type: PaymentCardType;
   ticketType?: TicketBadgeType;
@@ -131,6 +139,21 @@ const readArray = (value: unknown, key: string): unknown[] => {
 
   const nextValue = value[key];
   return Array.isArray(nextValue) ? nextValue : [];
+};
+
+const readArrayByKeys = (value: unknown, keys: string[]): unknown[] => {
+  if (!isRecord(value)) {
+    return [];
+  }
+
+  for (const key of keys) {
+    const nextValue = value[key];
+    if (Array.isArray(nextValue)) {
+      return nextValue;
+    }
+  }
+
+  return [];
 };
 
 const readString = (value: unknown, keys: string[]) => {
@@ -255,6 +278,33 @@ const formatTimestamp = (timestamp: number | undefined) => {
   }).format(new Date(normalized));
 };
 
+const formatDate = (value: unknown) => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    const normalized = value > 10_000_000_000 ? value : value * 1000;
+    return new Intl.DateTimeFormat('ru-RU', {
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit',
+    }).format(new Date(normalized));
+  }
+
+  if (typeof value !== 'string' || !value.trim()) {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  const parsed = Date.parse(trimmed);
+  if (Number.isFinite(parsed)) {
+    return new Intl.DateTimeFormat('ru-RU', {
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit',
+    }).format(new Date(parsed));
+  }
+
+  return trimmed;
+};
+
 const normalizeLineType = (value?: string): SubwayLineType => {
   if (!value) {
     return 'Default';
@@ -306,7 +356,8 @@ const getCardState = (item: unknown, card: unknown) => {
     readBoolean(card, ['blocked', 'isBlocked', 'limited']) ||
     ['blocked', 'annulled', 'expired', 'stopList'].includes(status ?? '');
   const debtAmount = findNumberDeep(item, ['debtAmount', 'debts']);
-  const hasUnrecordedTopUps = readArray(item, 'deferredActions').length > 0 || readArray(item, 'unloadedWalletToken').length > 0;
+  const hasUnrecordedTopUps =
+    readArrayByKeys(item, ['deferredActions', 'unloadedWalletToken', 'unrecordedTopUps', 'unrecordedReplenishments', 'pendingTopUps']).length > 0;
 
   if (debtAmount && debtAmount > 0) {
     return { blocked: true, severity: 'blocker' as const, statusText: 'Задолженность', warning: 'Задолженности' };
@@ -315,7 +366,7 @@ const getCardState = (item: unknown, card: unknown) => {
     return { blocked: true, severity: 'blocker' as const, statusText: 'Заблокирована', warning: 'Карта заблокирована' };
   }
   if (hasUnrecordedTopUps) {
-    return { blocked: false, severity: 'warning' as const, statusText: 'Активна', warning: 'Незаписанные пополнения' };
+    return { blocked: false, severity: 'warning' as const, statusText: 'Активна', warning: 'Имеются незаписанные пополнения' };
   }
   if (status === 'pending' || status === 'waiting') {
     return { blocked: false, severity: 'warning' as const, statusText: 'Ожидается', warning: 'Ожидается привязка' };
@@ -325,6 +376,71 @@ const getCardState = (item: unknown, card: unknown) => {
 };
 
 const getCardsPayload = (bootstrap: DashboardBootstrapResponse | null) => unwrapData(bootstrap?.carriers);
+
+const getCardWalletBalance = (item: unknown, balance: unknown) =>
+  formatMoney(findNumberDeep(balance ?? item, ['balance', 'amount', 'walletBalance', 'walletAmount', 'value']), 'Баланс уточняется');
+
+const readDateValue = (value: unknown, keys: string[]) => {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  for (const key of keys) {
+    const nextValue = value[key];
+    if ((typeof nextValue === 'string' && nextValue.trim()) || (typeof nextValue === 'number' && Number.isFinite(nextValue))) {
+      return nextValue;
+    }
+  }
+
+  return undefined;
+};
+
+const getTicketBadgeType = (ticket: unknown): TicketBadgeType => {
+  const type = (readString(ticket, ['type', 'ticketType', 'carrierType', 'kind']) ?? '').toLowerCase();
+  const name = (findStringDeep(ticket, ['displayName', 'name', 'title', 'ticketName', 'productName', 'tariffName']) ?? '').toLowerCase();
+  const combined = `${type} ${name}`;
+
+  if (combined.includes('тат') || combined.includes('tat')) {
+    return 'TAT';
+  }
+  if (combined.includes('автоб') || combined.includes('bus')) {
+    return 'Bus';
+  }
+  if (combined.includes('кошел') || combined.includes('wallet')) {
+    return 'Wallet';
+  }
+
+  return 'Union';
+};
+
+const normalizeCardDetails = (item: unknown, balance: unknown): PaymentMethodDetail[] => {
+  const walletBalance = getCardWalletBalance(item, balance);
+  const details: PaymentMethodDetail[] = [
+    {
+      id: 'wallet',
+      label: 'Кошелек',
+      ticketType: 'Wallet',
+      value: walletBalance,
+    },
+  ];
+  const tickets = readArrayByKeys(item, ['tickets', 'activeTickets', 'products']);
+
+  tickets.forEach((ticket, index) => {
+    const label =
+      findStringDeep(ticket, ['displayName', 'name', 'title', 'ticketName', 'productName', 'tariffName', 'typeName']) ?? `Билет ${index + 1}`;
+    const expiresAt = readDateValue(ticket, ['validTo', 'validUntil', 'expireDate', 'expiredDate', 'expirationDate', 'endDate', 'to', 'validityEndDate']);
+    const date = formatDate(expiresAt);
+
+    details.push({
+      id: findStringDeep(ticket, ['id', 'ticketId', 'productId']) ?? `ticket-${index}`,
+      label,
+      ticketType: getTicketBadgeType(ticket),
+      value: date ? `до ${date}` : undefined,
+    });
+  });
+
+  return details;
+};
 
 const normalizePaymentMethods = (bootstrap: DashboardBootstrapResponse | null): PaymentMethodView[] => {
   if (!bootstrap) {
@@ -348,8 +464,9 @@ const normalizePaymentMethods = (bootstrap: DashboardBootstrapResponse | null): 
     methods.push({
       ...state,
       id: readString(card, ['linkedCardId', 'id', 'externalId']) ?? `transport-${index}`,
-      primary: formatMoney(findNumberDeep(balance ?? item, ['balance', 'amount', 'walletBalance', 'value']), 'Баланс уточняется'),
-      secondary: readString(card, ['cardNumber', 'number', 'formattedNumber', 'pan']) ?? 'Транспортная карта',
+      details: normalizeCardDetails(item, balance),
+      primary: getCardWalletBalance(item, balance),
+      secondary: 'Кошелек',
       ticketType: virtualCardInfo ? 'Wallet' : 'Union',
       title: readString(card, ['displayName', 'name', 'title']) ?? (virtualCardInfo ? 'Виртуальная «Тройка»' : 'Моя «Тройка»'),
       type,
@@ -486,10 +603,23 @@ const PaymentMethodCard = ({ method }: { method: PaymentMethodView }) => (
             <span>{method.blocked ? 'Заблокирована' : method.statusText}</span>
           </div>
         </div>
-        <div className="payment-card__row">
-          {method.paymentSystem ? <PaymentSystemBadge type={method.paymentSystem} /> : <TicketBadge type={method.ticketType ?? 'Union'} />}
-          <span>{method.secondary}</span>
-          {method.meta && <span className="payment-card__meta">{method.meta}</span>}
+        <div className="payment-card__details">
+          {(method.details?.length
+            ? method.details
+            : [
+                {
+                  id: 'default',
+                  label: method.secondary,
+                  ticketType: method.ticketType ?? 'Union',
+                  value: method.meta,
+                },
+              ]).map((detail) => (
+            <div className="payment-card__row" key={detail.id}>
+              <TicketBadge type={detail.ticketType} />
+              <span>{detail.label}</span>
+              {detail.value && <span className="payment-card__meta">{detail.value}</span>}
+            </div>
+          ))}
         </div>
       </>
     )}
@@ -559,7 +689,10 @@ export const Dashboard = () => {
           </Link>
           <div className="authorized-header__actions">
             <button className="authorized-profile-button" type="button">
-              <span className="authorized-profile-button__icon" aria-hidden="true" />
+              <svg className="authorized-profile-button__icon" viewBox="0 0 20 20" aria-hidden="true">
+                <circle cx="10" cy="7.5" r="3" />
+                <path d="M4.75 16.25c.78-2.7 2.67-4.05 5.25-4.05s4.47 1.35 5.25 4.05" />
+              </svg>
               <span>{displayPhone}</span>
             </button>
             <button className="authorized-logout-button" type="button" onClick={handleLogout} aria-label="Выйти">
@@ -594,62 +727,64 @@ export const Dashboard = () => {
             </button>
           </section>
 
-          <section className="authorized-services" aria-label="Разделы личного кабинета">
-            {serviceCards.map((card) => (
-              <article className={`authorized-service-card ${card.className}`} key={card.title}>
-                <img src={card.image} alt="" aria-hidden="true" />
-                <h2>{card.title}</h2>
-              </article>
-            ))}
-            <article className="authorized-service-card authorized-service--stacked">
-              <div className="authorized-service-stack" aria-hidden="true">
-                <img src={serviceDriver} alt="" />
-                <img src={serviceBike} alt="" />
-                <img src={serviceTaxi} alt="" />
-              </div>
-              <h2>Сервисы</h2>
-            </article>
-          </section>
-
-          {isFastPayVisible && <FastPayBanner onDismiss={() => setIsFastPayVisible(false)} />}
-
-          <TopUpBalanceCard />
-
-          <section className="history-panel" aria-labelledby="history-title">
-            <div className="history-panel__title">
-              <h2 id="history-title">Последние операции</h2>
-              <span aria-hidden="true" />
-            </div>
-            <p className="history-panel__date">Сегодня</p>
-            <div className="history-list" aria-busy={isLoading}>
-              {isLoading && <p className="authorized-empty-state">Загружаем поездки и операции...</p>}
-              {!isLoading && historyItems.length === 0 && <p className="authorized-empty-state">История появится после первых поездок и операций.</p>}
-              {historyItems.map((item) => (
-                <article className="history-item" key={item.id}>
-                  <div className="history-item__main">
-                    <div className="history-item__title">
-                      <span className="history-item__icon-box">
-                        <HistoryIcon item={item} />
-                      </span>
-                      <strong>{item.title}</strong>
-                    </div>
-                    <div className="history-item__amount">
-                      <p className={`history-item__amount-value history-item__amount-value--${item.amountTone}`}>{item.amount}</p>
-                      <small>{item.time}</small>
-                    </div>
-                  </div>
-                  <div className="history-item__details">
-                    <p>{item.source}</p>
-                    <small>{item.action}</small>
-                  </div>
-                  {item.warning && <div className="history-item__warning">{item.warning}</div>}
+          <div className="authorized-content">
+            <section className="authorized-services" aria-label="Разделы личного кабинета">
+              {serviceCards.map((card) => (
+                <article className={`authorized-service-card ${card.className}`} key={card.title}>
+                  <img src={card.image} alt="" aria-hidden="true" />
+                  <h2>{card.title}</h2>
                 </article>
               ))}
-            </div>
-            <button className="history-panel__all" type="button">
-              Смотреть все
-            </button>
-          </section>
+              <article className="authorized-service-card authorized-service--stacked">
+                <div className="authorized-service-stack" aria-hidden="true">
+                  <img src={serviceDriver} alt="" />
+                  <img src={serviceBike} alt="" />
+                  <img src={serviceTaxi} alt="" />
+                </div>
+                <h2>Сервисы</h2>
+              </article>
+            </section>
+
+            {isFastPayVisible && <FastPayBanner onDismiss={() => setIsFastPayVisible(false)} />}
+
+            <TopUpBalanceCard />
+
+            <section className="history-panel" aria-labelledby="history-title">
+              <div className="history-panel__title">
+                <h2 id="history-title">Последние операции</h2>
+                <span aria-hidden="true" />
+              </div>
+              <p className="history-panel__date">Сегодня</p>
+              <div className="history-list" aria-busy={isLoading}>
+                {isLoading && <p className="authorized-empty-state">Загружаем поездки и операции...</p>}
+                {!isLoading && historyItems.length === 0 && <p className="authorized-empty-state">История появится после первых поездок и операций.</p>}
+                {historyItems.map((item) => (
+                  <article className="history-item" key={item.id}>
+                    <div className="history-item__main">
+                      <div className="history-item__title">
+                        <span className="history-item__icon-box">
+                          <HistoryIcon item={item} />
+                        </span>
+                        <strong>{item.title}</strong>
+                      </div>
+                      <div className="history-item__amount">
+                        <p className={`history-item__amount-value history-item__amount-value--${item.amountTone}`}>{item.amount}</p>
+                        <small>{item.time}</small>
+                      </div>
+                    </div>
+                    <div className="history-item__details">
+                      <p>{item.source}</p>
+                      <small>{item.action}</small>
+                    </div>
+                    {item.warning && <div className="history-item__warning">{item.warning}</div>}
+                  </article>
+                ))}
+              </div>
+              <button className="history-panel__all" type="button">
+                Смотреть все
+              </button>
+            </section>
+          </div>
         </div>
 
         <button className="authorized-chat-button" type="button" aria-label="Открыть чат">
