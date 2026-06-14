@@ -31,6 +31,16 @@
   box-shadow: 0 16px 34px rgba(218, 32, 50, 0.34);
 }
 
+.chat-widget__launcher:disabled {
+  cursor: default;
+  opacity: 0.78;
+  transform: none;
+}
+
+.chat-widget__launcher:disabled:hover {
+  box-shadow: 0 12px 28px rgba(218, 32, 50, 0.28);
+}
+
 .chat-widget__launcher svg,
 .chat-widget__close svg,
 .chat-widget__attach svg,
@@ -114,6 +124,21 @@
 .chat-widget__close-icon {
   width: 24px !important;
   height: 24px !important;
+}
+
+.chat-widget__loader {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(255, 255, 255, 0.42);
+  border-top-color: var(--surface);
+  border-radius: 999px;
+  animation: chat-widget-loader-spin 780ms linear infinite;
+}
+
+@keyframes chat-widget-loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .chat-widget__header h2,

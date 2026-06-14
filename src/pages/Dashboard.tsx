@@ -581,6 +581,11 @@ const getDisplayPhone = (bootstrap: DashboardBootstrapResponse | null) => {
   return formatPhone(phone);
 };
 
+const getChatClientId = (bootstrap: DashboardBootstrapResponse | null) => {
+  const accountInfo = unwrapData(bootstrap?.accountInfo);
+  return readString(accountInfo, ['userId', 'id', 'accountId']);
+};
+
 const PaymentMethodCard = ({ method }: { method: PaymentMethodView }) => (
   <article className={`payment-card payment-card--${method.type} payment-card--${method.severity}`}>
     {method.type === 'bank' ? (
@@ -672,6 +677,7 @@ export const Dashboard = () => {
   const paymentMethods = useMemo(() => normalizePaymentMethods(bootstrap), [bootstrap]);
   const historyItems = useMemo(() => normalizeHistory(bootstrap), [bootstrap]);
   const displayPhone = useMemo(() => getDisplayPhone(bootstrap), [bootstrap]);
+  const chatClientId = useMemo(() => getChatClientId(bootstrap), [bootstrap]);
 
   const handleLogout = () => {
     void apiService.logout().finally(() => {
@@ -787,7 +793,7 @@ export const Dashboard = () => {
           </div>
         </div>
 
-        <ChatWidget isAuthenticated />
+        <ChatWidget isAuthenticated clientId={chatClientId} />
       </main>
 
       <PublicFooter />
