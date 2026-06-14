@@ -111,13 +111,14 @@
 }
 
 .payment-methods-panel {
-  grid-area: payments;
   grid-column: 1;
+  grid-row: 1;
   padding: 24px;
 }
 
 .authorized-content {
   grid-column: 2;
+  grid-row: 1;
 }
 
 .authorized-panel__header {
@@ -860,6 +861,12 @@
 
   .authorized-content {
     display: contents;
+  }
+
+  .payment-methods-panel {
+    grid-area: payments;
+    grid-column: auto;
+    grid-row: auto;
   }
 
   .authorized-services {
