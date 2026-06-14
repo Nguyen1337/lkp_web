@@ -497,8 +497,10 @@ export const LoginEntryCard = ({ focusRequest, onAuthenticated }: LoginEntryCard
           </p>
         )}
 
-        <button className="primary-action-button" disabled={!isPhoneComplete || isRequestingCode} type="submit">
-          Войти
+        <button className={`primary-action-button${isRequestingCode ? ' primary-action-button--loading' : ''}`} disabled={!isPhoneComplete || isRequestingCode} type="submit">
+          {isRequestingCode && <span className="button-loader" aria-hidden="true" />}
+          <span>Войти</span>
+          {isRequestingCode && <span className="button-loader-placeholder" aria-hidden="true" />}
         </button>
       </form>
 
@@ -835,12 +837,6 @@ export const FastPayBanner = ({ onDismiss }: FastPayBannerProps) => {
         isResettingTrack ? ' is-resetting' : ''
       }`}
       aria-label="Карусель баннеров"
-      onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) {
-          setIsCarouselPaused(false);
-        }
-      }}
-      onFocus={() => setIsCarouselPaused(true)}
       onMouseEnter={() => setIsCarouselPaused(true)}
       onMouseLeave={() => setIsCarouselPaused(false)}
     >

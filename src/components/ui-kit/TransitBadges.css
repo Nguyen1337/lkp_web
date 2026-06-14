@@ -129,7 +129,14 @@
 }
 
 .subway-line-badge--bus {
-  background: #2f80d1;
+  background: transparent;
+  color: transparent;
+}
+
+.subway-line-badge--bus img {
+  display: block;
+  width: 20px;
+  height: 20px;
 }
 
 .ticket-badge {
@@ -202,7 +209,10 @@
   height: 28px;
   padding: 0 7px;
   border-radius: 4px;
-  background: #fff;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 96% 4%, #e7eeff 0, #d6e2ff 54%, #dfe8ff 100%);
   color: #00925a;
   font-size: 10px;
   font-weight: 800;
@@ -217,6 +227,32 @@
   color: #eb001b;
 }
 
+.payment-system-badge--unionpay {
+  color: #2459a8;
+}
+
 .payment-system-badge--unknown {
-  background: #f8f8f8;
+  color: transparent;
+}
+
+.payment-system-badge--unknown::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 10px;
+  height: 8px;
+  border-radius: 2px;
+  background: #fcf2d1;
+}
+
+.payment-system-badge--unknown::after {
+  content: "";
+  position: absolute;
+  right: 7px;
+  bottom: 5px;
+  left: 7px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
 }

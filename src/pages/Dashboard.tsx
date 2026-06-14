@@ -11,8 +11,6 @@ import cardTroikaBlocked from '../assets/authorized-home/card-troika-blocked.png
 import cardVtActive from '../assets/authorized-home/card-vt-active.png';
 import cardVtBlocked from '../assets/authorized-home/card-vt-blocked.png';
 import chatButton from '../assets/public-home/chat-button.png';
-import fastPayPattern from '../assets/public-home/fast-pay-pattern-figma.svg';
-import fastPayTerminal from '../assets/public-home/fast-pay-terminal-figma.png';
 import feedbackCard from '../assets/public-home/feedback-figma.png';
 import metroLogo from '../assets/public-home/metro-logo.svg';
 import serviceBike from '../assets/public-home/service-bike-figma.png';
@@ -20,9 +18,10 @@ import serviceDriver from '../assets/public-home/service-driver-figma.png';
 import serviceTaxi from '../assets/public-home/service-taxi-figma.png';
 import tariffsCard from '../assets/public-home/tariffs-figma.png';
 import terminalsCard from '../assets/public-home/terminals-figma.png';
-import { PublicFooter } from '../components/public-home/PublicHomeComponents';
+import { FastPayBanner, PublicFooter, TopUpBalanceCard } from '../components/public-home/PublicHomeComponents';
 import { PaymentSystemBadge, SubwayLineBadge, TicketBadge } from '../components/ui-kit/TransitBadges';
 import type { PaymentSystemType, SubwayLineType, TicketBadgeType } from '../components/ui-kit/TransitBadges';
+import './PublicHome.css';
 import './Dashboard.css';
 
 type JsonRecord = Record<string, unknown>;
@@ -266,11 +265,21 @@ const normalizeLineType = (value?: string): SubwayLineType => {
 };
 
 const normalizePaymentSystem = (value?: string): PaymentSystemType => {
-  const normalized = value?.toUpperCase();
+  const normalized = value?.toUpperCase().replace(/[\s_-]/g, '');
   if (normalized === 'MIR' || normalized === 'VISA' || normalized === 'MASTERCARD') {
     return normalized;
   }
+  if (normalized === 'UNIONPAY') {
+    return 'UNIONPAY';
+  }
   return 'UNKNOWN';
+};
+
+const formatBankCardMask = (value?: string) => {
+  const digits = value?.replace(/\D/g, '') ?? '';
+  const lastDigits = digits.slice(-4);
+
+  return lastDigits ? `•••• ${lastDigits}` : '••••';
 };
 
 const normalizeSbpStatus = (state?: string) => {
@@ -355,17 +364,17 @@ const normalizePaymentMethods = (bootstrap: DashboardBootstrapResponse | null): 
       id: readString(item, ['linkedBankCardId', 'externalLinkedBankCardId', 'id']) ?? `bank-${index}`,
       meta: readString(item, ['expiredDate', 'expirationDate']),
       paymentSystem: normalizePaymentSystem(readString(item, ['type', 'cardType'])),
-      primary: readString(item, ['maskedPan', 'displayName']) ?? 'Банковская карта',
+      primary: formatBankCardMask(readString(item, ['maskedPan', 'pan', 'number', 'displayName'])),
       secondary: 'Банковская карта',
-      title: readString(item, ['displayName']) ?? 'Банковская карта',
+      title: 'Банковская карта',
       type: 'bank',
-      visualImage: getPaymentCardVisual('bank', state.blocked),
     });
   });
 
   const sbpPayload = unwrapData(bootstrap.sbpSubscription);
-  const sbpState = normalizeSbpStatus(readString(sbpPayload, ['state']));
-  if (bootstrap.sbpSubscription) {
+  const sbpStatus = readString(sbpPayload, ['state']);
+  const sbpState = normalizeSbpStatus(sbpStatus);
+  if (bootstrap.sbpSubscription && sbpStatus !== 'NONE') {
     methods.push({
       ...sbpState,
       id: 'sbp-subscription',
@@ -457,23 +466,42 @@ const getDisplayPhone = (bootstrap: DashboardBootstrapResponse | null) => {
 
 const PaymentMethodCard = ({ method }: { method: PaymentMethodView }) => (
   <article className={`payment-card payment-card--${method.type} payment-card--${method.severity}`}>
-    <div className="payment-card__content">
-      <div>
-        <p>{method.title}</p>
-        <strong>{method.primary}</strong>
+    {method.type === 'bank' ? (
+      <div className="payment-card__bank-content">
+        <div>
+          <p>{method.title}</p>
+          <strong>{method.primary}</strong>
+        </div>
+        <PaymentSystemBadge type={method.paymentSystem ?? 'UNKNOWN'} className="payment-card__bank-system" />
       </div>
-      <div className={`payment-card__visual${method.visualImage ? ' payment-card__visual--with-image' : ''}`} aria-hidden="true">
-        {method.visualImage && <img src={method.visualImage} alt="" />}
-        <span>{method.blocked ? 'Заблокирована' : method.statusText}</span>
-      </div>
-    </div>
-    <div className="payment-card__row">
-      {method.paymentSystem ? <PaymentSystemBadge type={method.paymentSystem} /> : <TicketBadge type={method.ticketType ?? 'Union'} />}
-      <span>{method.secondary}</span>
-      {method.meta && <span className="payment-card__meta">{method.meta}</span>}
-    </div>
+    ) : (
+      <>
+        <div className="payment-card__content">
+          <div>
+            <p>{method.title}</p>
+            <strong>{method.primary}</strong>
+          </div>
+          <div className={`payment-card__visual${method.visualImage ? ' payment-card__visual--with-image' : ''}`} aria-hidden="true">
+            {method.visualImage && <img src={method.visualImage} alt="" />}
+            <span>{method.blocked ? 'Заблокирована' : method.statusText}</span>
+          </div>
+        </div>
+        <div className="payment-card__row">
+          {method.paymentSystem ? <PaymentSystemBadge type={method.paymentSystem} /> : <TicketBadge type={method.ticketType ?? 'Union'} />}
+          <span>{method.secondary}</span>
+          {method.meta && <span className="payment-card__meta">{method.meta}</span>}
+        </div>
+      </>
+    )}
     {method.warning && <div className={`payment-card__warning payment-card__warning--${method.severity}`}>{method.warning}</div>}
   </article>
+);
+
+const EmptyPaymentMethods = () => (
+  <div className="payment-methods-empty">
+    <span className="payment-methods-empty__icon" aria-hidden="true" />
+    <span>Новый метод оплаты</span>
+  </div>
 );
 
 const HistoryIcon = ({ item }: { item: HistoryItemView }) => {
@@ -488,6 +516,7 @@ export const Dashboard = () => {
   const navigate = useNavigate();
   const [bootstrap, setBootstrap] = useState<DashboardBootstrapResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFastPayVisible, setIsFastPayVisible] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
@@ -554,7 +583,7 @@ export const Dashboard = () => {
 
             <div className="payment-methods-list" aria-busy={isLoading}>
               {isLoading && <p className="authorized-empty-state">Загружаем платежные средства...</p>}
-              {!isLoading && paymentMethods.length === 0 && <p className="authorized-empty-state">Платежные средства появятся после привязки карты или подписки.</p>}
+              {!isLoading && paymentMethods.length === 0 && <EmptyPaymentMethods />}
               {paymentMethods.map((method) => (
                 <PaymentMethodCard method={method} key={method.id} />
               ))}
@@ -582,48 +611,9 @@ export const Dashboard = () => {
             </article>
           </section>
 
-          <section className="authorized-fast-pay" aria-label="Система быстрых платежей">
-            <img className="authorized-fast-pay__pattern" src={fastPayPattern} alt="" aria-hidden="true" />
-            <img className="authorized-fast-pay__terminal" src={fastPayTerminal} alt="" aria-hidden="true" />
-            <div>
-              <h2>Подключайте систему быстрых платежей</h2>
-              <p>и оплачивайте поездки на городском транспорте</p>
-            </div>
-            <div className="authorized-fast-pay__dots" aria-hidden="true">
-              <span className="is-active" />
-              <span />
-              <span />
-              <span />
-            </div>
-            <button type="button" aria-label="Скрыть баннер">×</button>
-          </section>
+          {isFastPayVisible && <FastPayBanner onDismiss={() => setIsFastPayVisible(false)} />}
 
-          <section className="authorized-top-up" aria-labelledby="authorized-top-up-title">
-            <h2 id="authorized-top-up-title">Пополнить баланс</h2>
-            <div className="authorized-tabs" role="tablist" aria-label="Тип пополнения">
-              <button className="is-active" type="button">Кошелек</button>
-              <button type="button">Билеты</button>
-            </div>
-            <form className="authorized-top-up-form">
-              <label>
-                <span>Номер транспортной карты</span>
-                <span className="authorized-field">1234 567 890 <i /></span>
-              </label>
-              <label>
-                <span>Сумма пополнения</span>
-                <span className="authorized-field">0 <b>₽</b></span>
-              </label>
-              <label>
-                <span>Способ оплаты</span>
-                <span className="authorized-field authorized-field--muted">Выберите способ оплаты <i /></span>
-              </label>
-              <label>
-                <span>Направить чек</span>
-                <span className="authorized-field">example@mail.ru</span>
-              </label>
-              <button type="button">Пополнить</button>
-            </form>
-          </section>
+          <TopUpBalanceCard />
 
           <section className="history-panel" aria-labelledby="history-title">
             <div className="history-panel__title">

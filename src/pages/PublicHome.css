@@ -183,6 +183,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 10px;
   border: 0;
   border-radius: 16px;
   background: var(--button-muted);
@@ -208,6 +209,35 @@
 
 .primary-action-button:not(:disabled) {
   background: var(--brand-red);
+}
+
+.primary-action-button--loading:disabled {
+  background: var(--brand-red);
+  cursor: wait;
+}
+
+.button-loader,
+.button-loader-placeholder {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+
+.button-loader {
+  border: 2px solid rgba(255, 255, 255, 0.42);
+  border-top-color: var(--surface);
+  border-radius: 999px;
+  animation: button-loader-spin 760ms linear infinite;
+}
+
+.button-loader-placeholder {
+  opacity: 0;
+}
+
+@keyframes button-loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .login-divider {

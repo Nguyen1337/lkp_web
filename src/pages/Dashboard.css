@@ -169,6 +169,72 @@
   overflow: hidden;
 }
 
+.payment-card--bank {
+  min-height: 88px;
+  padding: 8px;
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 0 10px rgba(101, 103, 114, 0.12);
+}
+
+.payment-card__bank-content {
+  min-height: 72px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.payment-card__bank-content p {
+  margin: 0 0 4px;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 18px;
+}
+
+.payment-card__bank-content strong {
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.payment-card__bank-system.payment-system-badge {
+  width: 68px;
+  height: 44px;
+  min-width: 68px;
+  border-radius: 6px;
+  font-size: 10px;
+}
+
+.payment-methods-empty {
+  min-height: 60px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 8px;
+  background: var(--figma-color-background-tertiary);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.payment-methods-empty__icon {
+  width: 44px;
+  height: 28px;
+  flex: 0 0 auto;
+  border-radius: 4px;
+  background:
+    linear-gradient(90deg, #21b8cd 0 72%, #b7d6e0 72% 100%),
+    #defbff;
+  box-shadow: inset -4px 0 0 rgba(51, 51, 51, 0.08);
+}
+
 .payment-card__content {
   display: flex;
   justify-content: space-between;
@@ -328,6 +394,15 @@
   font-family: inherit;
   font-size: 16px;
   cursor: pointer;
+}
+
+.authorized-home .fast-pay-banner {
+  grid-area: banner;
+}
+
+.authorized-home .top-up-panel {
+  width: 100%;
+  min-height: 480px;
 }
 
 .authorized-services {
@@ -798,14 +873,14 @@
   }
 
   .payment-methods-panel,
-  .authorized-top-up,
+  .top-up-panel,
   .history-panel {
     padding: 16px;
     border-radius: 12px;
   }
 
   .authorized-panel__header h1,
-  .authorized-top-up h2,
+  .top-up-panel h2,
   .history-panel h2 {
     font-size: 20px;
     line-height: 24px;

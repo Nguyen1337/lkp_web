@@ -1,4 +1,5 @@
 import './TransitBadges.css';
+import busLineBadge from '../../assets/ui-kit/bus-line-badge.svg';
 
 export type SubwayLineType =
   | 'Default'
@@ -35,7 +36,7 @@ export type TicketBadgeType = 'Union' | 'TAT' | 'Bus' | 'Wallet' | 'Unrecorded' 
 
 export type FreezeStatusType = 'Active' | 'Plan' | 'Possible' | 'Ready' | 'Disable';
 
-export type PaymentSystemType = 'MIR' | 'VISA' | 'MASTERCARD' | 'UNKNOWN';
+export type PaymentSystemType = 'MIR' | 'VISA' | 'MASTERCARD' | 'UNIONPAY' | 'UNKNOWN';
 
 type BadgeProps<T extends string> = {
   type: T;
@@ -44,7 +45,7 @@ type BadgeProps<T extends string> = {
 
 export const SubwayLineBadge = ({ type, className = '' }: BadgeProps<SubwayLineType>) => (
   <span className={`subway-line-badge subway-line-badge--${type.toLowerCase()} ${className}`} aria-label={`Линия ${type}`}>
-    {type === 'Default' ? '' : type}
+    {type === 'Bus' ? <img src={busLineBadge} alt="" aria-hidden="true" /> : type === 'Default' ? '' : type}
   </span>
 );
 
@@ -72,6 +73,14 @@ export const FreezeStatusBadge = ({ type, className = '' }: BadgeProps<FreezeSta
   </span>
 );
 
-export const PaymentSystemBadge = ({ type, className = '' }: BadgeProps<PaymentSystemType>) => (
-  <span className={`payment-system-badge payment-system-badge--${type.toLowerCase()} ${className}`}>{type === 'UNKNOWN' ? '' : type}</span>
-);
+export const PaymentSystemBadge = ({ type, className = '' }: BadgeProps<PaymentSystemType>) => {
+  const labelByType: Record<PaymentSystemType, string> = {
+    MASTERCARD: 'MC',
+    MIR: 'MIR',
+    UNIONPAY: 'UP',
+    UNKNOWN: '',
+    VISA: 'VISA',
+  };
+
+  return <span className={`payment-system-badge payment-system-badge--${type.toLowerCase()} ${className}`}>{labelByType[type]}</span>;
+};
