@@ -1,7 +1,7 @@
 import { useState } from 'react';
+import { ChatWidget } from '../components/chat/ChatWidget';
 import {
   FastPayBanner,
-  HelpButton,
   LoginEntryCard,
   PublicFooter,
   PublicHeader,
@@ -27,7 +27,7 @@ export const PublicHome = () => {
           <TopUpBalanceCard />
         </div>
 
-        <HelpButton />
+        <ChatWidget />
       </main>
 
       <PublicFooter />

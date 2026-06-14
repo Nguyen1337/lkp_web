@@ -9,7 +9,6 @@ import accountMos from '../../assets/public-home/account-mos-figma.svg';
 import accountT from '../../assets/public-home/account-t-figma.svg';
 import accountVk from '../../assets/public-home/account-vk-figma.svg';
 import accountYa from '../../assets/public-home/account-ya-figma.svg';
-import chatButton from '../../assets/public-home/chat-button.png';
 import fastPayPattern from '../../assets/public-home/fast-pay-pattern-figma.svg';
 import fastPayTariffs from '../../assets/public-home/fast-pay-tariffs-figma.png';
 import fastPayTerminal from '../../assets/public-home/fast-pay-terminal-figma.png';
@@ -921,12 +920,6 @@ export const TopUpBalanceCard = () => (
       </button>
     </form>
   </section>
-);
-
-export const HelpButton = () => (
-  <button className="chat-button" type="button" aria-label="Открыть чат">
-    <img src={chatButton} alt="" aria-hidden="true" />
-  </button>
 );
 
 export const PublicFooter = () => (

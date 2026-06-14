@@ -10,7 +10,6 @@ import cardTroikaActive from '../assets/authorized-home/card-troika-active.png';
 import cardTroikaBlocked from '../assets/authorized-home/card-troika-blocked.png';
 import cardVtActive from '../assets/authorized-home/card-vt-active.png';
 import cardVtBlocked from '../assets/authorized-home/card-vt-blocked.png';
-import chatButton from '../assets/public-home/chat-button.png';
 import feedbackCard from '../assets/public-home/feedback-figma.png';
 import metroLogo from '../assets/public-home/metro-logo.svg';
 import serviceBike from '../assets/public-home/service-bike-figma.png';
@@ -18,6 +17,7 @@ import serviceDriver from '../assets/public-home/service-driver-figma.png';
 import serviceTaxi from '../assets/public-home/service-taxi-figma.png';
 import tariffsCard from '../assets/public-home/tariffs-figma.png';
 import terminalsCard from '../assets/public-home/terminals-figma.png';
+import { ChatWidget } from '../components/chat/ChatWidget';
 import { FastPayBanner, PublicFooter, TopUpBalanceCard } from '../components/public-home/PublicHomeComponents';
 import { PaymentSystemBadge, SubwayLineBadge, TicketBadge } from '../components/ui-kit/TransitBadges';
 import type { PaymentSystemType, SubwayLineType, TicketBadgeType } from '../components/ui-kit/TransitBadges';
@@ -787,9 +787,7 @@ export const Dashboard = () => {
           </div>
         </div>
 
-        <button className="authorized-chat-button" type="button" aria-label="Открыть чат">
-          <img src={chatButton} alt="" aria-hidden="true" />
-        </button>
+        <ChatWidget isAuthenticated />
       </main>
 
       <PublicFooter />
