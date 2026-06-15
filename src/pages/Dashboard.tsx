@@ -21,6 +21,8 @@ import { ChatWidget } from '../components/chat/ChatWidget';
 import { FastPayBanner, PublicFooter, TopUpBalanceCard } from '../components/public-home/PublicHomeComponents';
 import { PaymentSystemBadge, SubwayLineBadge, TicketBadge } from '../components/ui-kit/TransitBadges';
 import type { PaymentSystemType, SubwayLineType, TicketBadgeType } from '../components/ui-kit/TransitBadges';
+import { HistoryDrawer } from '../components/history/HistoryDrawer';
+import type { HistoryFilterMethod } from '../components/history/HistoryFilters';
 import './PublicHome.css';
 import './Dashboard.css';
 
@@ -652,6 +654,7 @@ export const Dashboard = () => {
   const [bootstrap, setBootstrap] = useState<DashboardBootstrapResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isFastPayVisible, setIsFastPayVisible] = useState(true);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -678,6 +681,15 @@ export const Dashboard = () => {
   const historyItems = useMemo(() => normalizeHistory(bootstrap), [bootstrap]);
   const displayPhone = useMemo(() => getDisplayPhone(bootstrap), [bootstrap]);
   const chatClientId = useMemo(() => getChatClientId(bootstrap), [bootstrap]);
+  const historyFilterMethods = useMemo<HistoryFilterMethod[]>(
+    () =>
+      paymentMethods.map((method) => ({
+        id: method.id,
+        title: method.title,
+        subtitle: method.type === 'bank' ? method.primary : method.secondary,
+      })),
+    [paymentMethods],
+  );
 
   const handleLogout = () => {
     void apiService.logout().finally(() => {
@@ -786,7 +798,7 @@ export const Dashboard = () => {
                   </article>
                 ))}
               </div>
-              <button className="history-panel__all" type="button">
+              <button className="history-panel__all" type="button" onClick={() => setIsHistoryOpen(true)}>
                 Смотреть все
               </button>
             </section>
@@ -795,6 +807,12 @@ export const Dashboard = () => {
 
         <ChatWidget isAuthenticated clientId={chatClientId} />
       </main>
+
+      <HistoryDrawer
+        open={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        paymentMethods={historyFilterMethods}
+      />
 
       <PublicFooter />
     </div>

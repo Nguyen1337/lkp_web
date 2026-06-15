@@ -1,0 +1,33 @@
+.segmented {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--figma-radius-md);
+  background: var(--figma-color-fill-primary-default);
+}
+
+.segmented__item {
+  flex: 1;
+  min-height: 34px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: var(--figma-radius-sm);
+  background: transparent;
+  color: var(--figma-color-text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--figma-font-size-14);
+  font-weight: var(--figma-font-weight-medium);
+  line-height: var(--figma-line-height-18);
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.segmented__item:hover:not(.segmented__item--active) {
+  background: var(--figma-color-fill-primary-click);
+}
+
+.segmented__item--active {
+  background: var(--figma-color-text-primary);
+  color: var(--figma-color-text-tertiary);
+  cursor: default;
+}

@@ -1,0 +1,12 @@
+# <type>(<scope>): <краткое описание> [<author>]
+#
+# type:   feat | fix | refactor | style | docs | chore | wip
+# scope:  public-home | login | dashboard | api | ui-kit | layout | chat | types | ...
+# author: [claude] | [ai-2]   (люди тег не ставят)
+#
+# --- тело: что и зачем ---
+#
+#
+# Touched: <ключевые файлы/папки>
+# Note:    <сообщение для второго агента, если нужно>
+# Next:    <что логично сделать дальше / что оставлено недоделанным>

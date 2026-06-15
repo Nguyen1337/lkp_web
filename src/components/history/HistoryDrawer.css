@@ -1,0 +1,85 @@
+.history-drawer {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding-bottom: 24px;
+}
+
+.history-drawer__tabs {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.history-drawer__toolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 0 8px;
+}
+
+.history-drawer__filter {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: var(--figma-radius-sm);
+  background: var(--field-bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 18px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.history-drawer__filter:hover {
+  background: var(--figma-color-fill-primary-click);
+}
+
+.history-drawer__filter svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.history-drawer__filter-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--primary);
+}
+
+.history-drawer__content {
+  flex: 1;
+}
+
+.history-drawer__state {
+  margin: 24px 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 18px;
+  text-align: center;
+}
+
+.history-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.history-group__label {
+  margin: 16px 0 8px;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.history-group:first-child .history-group__label {
+  margin-top: 4px;
+}

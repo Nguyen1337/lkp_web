@@ -1,0 +1,282 @@
+.filters-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.filters-modal__overlay {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  background: rgba(43, 43, 45, 0.45);
+}
+
+.filters-modal__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 372px;
+  max-height: calc(100vh - 48px);
+  background: var(--surface);
+  border-radius: var(--figma-radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.filters-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px 24px 16px;
+}
+
+.filters-modal__title {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 28px;
+}
+
+.filters-modal__close {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  background: var(--field-bg);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.filters-modal__close svg,
+.filters-chip__caret {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.filters-modal__close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.filters-modal__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 24px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.filters-section__title {
+  margin: 0 0 12px;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.filters-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filters-method {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--figma-radius-md);
+  background: var(--field-bg);
+  cursor: pointer;
+}
+
+.filters-method__icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--figma-radius-xxs);
+  overflow: hidden;
+}
+
+.filters-method__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.filters-method__title {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.filters-method__subtitle {
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 18px;
+}
+
+.filters-method__checkbox {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.filters-checkbox {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--border);
+  border-radius: var(--figma-radius-xs);
+  background: var(--surface);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.filters-checkbox svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--figma-color-text-tertiary);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+}
+
+.filters-checkbox--on {
+  border-color: var(--primary);
+  background: var(--primary);
+}
+
+.filters-checkbox--on svg {
+  opacity: 1;
+}
+
+.filters-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filters-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: var(--figma-radius-sm);
+  background: var(--field-bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 18px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.filters-chip--active {
+  background: var(--figma-color-text-primary);
+  color: var(--figma-color-text-tertiary);
+}
+
+.filters-chip__caret {
+  width: 16px;
+  height: 16px;
+}
+
+.filters-empty {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.filters-modal__footer {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 24px 24px;
+}
+
+.filters-modal__apply {
+  min-height: 50px;
+  border: 0;
+  border-radius: var(--figma-radius-lg);
+  background: var(--primary);
+  color: var(--figma-color-text-tertiary);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.filters-modal__apply:hover:not(:disabled) {
+  background: var(--primary-dark);
+}
+
+.filters-modal__apply:disabled {
+  background: var(--button-muted);
+  cursor: default;
+}
+
+.filters-modal__clear {
+  min-height: 50px;
+  border: 0;
+  border-radius: var(--figma-radius-lg);
+  background: var(--field-bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.filters-modal__clear:disabled {
+  color: var(--figma-color-brand-secondary-disable, #adadad);
+  cursor: default;
+}
+
+@media (max-width: 520px) {
+  .filters-modal {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .filters-modal__card {
+    max-width: 100%;
+    border-radius: var(--figma-radius-lg) var(--figma-radius-lg) 0 0;
+  }
+}
