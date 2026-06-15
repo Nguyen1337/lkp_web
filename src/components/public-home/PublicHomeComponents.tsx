@@ -22,6 +22,9 @@ import serviceTaxi from '../../assets/public-home/service-taxi-figma.png';
 import storeIcons from '../../assets/public-home/store-icons.png';
 import tariffsCard from '../../assets/public-home/tariffs-figma.png';
 import terminalsCard from '../../assets/public-home/terminals-figma.png';
+import transportCardPlaceholder from '../../assets/public-home/transport-card-placeholder.svg';
+import transportCardTroika from '../../assets/public-home/transport-card-troika.svg';
+import transportCardVirtualTroika from '../../assets/public-home/transport-card-virtual-troika.svg';
 
 const PHONE_DIGITS_LENGTH = 10;
 
@@ -961,6 +964,35 @@ const normalizePaymentValidationProducts = (response: PaymentValidationResponse,
   wallet: response.data?.availableWallet,
 });
 
+const getCardSearchText = (card: CardSearchItem) =>
+  [card.typeId, card.typeName, card.cmsName, card.cmsTitle].filter(Boolean).join(' ').toLowerCase();
+
+const isVirtualTroikaType = (cardType?: string) => {
+  if (!cardType) {
+    return false;
+  }
+
+  const value = cardType.toLowerCase();
+  return value.includes('virtual') || value.includes('вирту') || value.includes('vtroika') || value === 'vt';
+};
+
+const isTroikaSearchCard = (card: CardSearchItem) => {
+  const value = getCardSearchText(card);
+  const isSocial = value.includes('social') || value.includes('социал');
+
+  return !isSocial && (value.includes('troika') || value.includes('тройк'));
+};
+
+const selectSupportedSearchCard = (cards: CardSearchItem[] | undefined) => cards?.find(isTroikaSearchCard);
+
+const getTopUpTransportCardIcon = (status: TopUpLookupStatus, cardType?: string) => {
+  if (status !== 'found') {
+    return transportCardPlaceholder;
+  }
+
+  return isVirtualTroikaType(cardType) ? transportCardVirtualTroika : transportCardTroika;
+};
+
 const TopUpPaymentField = () => (
   <label className="field">
     <span>Способ оплаты</span>
@@ -1003,6 +1035,7 @@ export const TopUpBalanceCard = () => {
 
   const formattedCardNumber = useMemo(() => formatTransportCardDigits(cardDigits), [cardDigits]);
   const selectedTicket = cardProducts?.tickets[0];
+  const transportCardIcon = getTopUpTransportCardIcon(lookupStatus, cardProducts?.cardType);
   const walletRange = useMemo(() => {
     const min = cardProducts?.wallet?.priceMin;
     const max = cardProducts?.wallet?.priceMax;
@@ -1025,7 +1058,7 @@ export const TopUpBalanceCard = () => {
     const loadCardProducts = async () => {
       try {
         const searchResponse = await apiService.searchCardsByNumber(cardDigits);
-        const card = searchResponse.cards?.[0];
+        const card = selectSupportedSearchCard(searchResponse.cards);
 
         if (!card?.uid) {
           setLookupStatus('not-found');
@@ -1086,7 +1119,7 @@ export const TopUpBalanceCard = () => {
     <section className="top-up-panel" aria-labelledby="top-up-title">
       <h2 id="top-up-title">Пополнить баланс</h2>
 
-      <div className="top-up-tabs" role="tablist" aria-label="Тип пополнения">
+      <div className={`top-up-tabs top-up-tabs--${activeTab}`} role="tablist" aria-label="Тип пополнения">
         <button
           aria-selected={activeTab === 'wallet'}
           className={`top-up-tabs__tab${activeTab === 'wallet' ? ' top-up-tabs__tab--active' : ''}`}
@@ -1111,7 +1144,7 @@ export const TopUpBalanceCard = () => {
         <label className="field top-up-card-field">
           <span>Номер транспортной карты</span>
           <span className={`top-up-card-input-shell${cardStateClass}`}>
-            <span className="field-icon field-icon--card" aria-hidden="true" />
+            <img className="transport-card-icon" src={transportCardIcon} alt="" aria-hidden="true" />
             <input
               aria-invalid={lookupStatus === 'not-found' || lookupStatus === 'error'}
               className="top-up-card-input"
