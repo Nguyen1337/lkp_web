@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ChangeEvent, FormEvent, KeyboardEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { apiService } from '../../api/apiService';
-import type { OtpStartResponse } from '../../api/apiService';
+import type { CardSearchItem, OtpStartResponse, PaymentValidationResponse, TicketProductsResponse, WalletProduct } from '../../api/apiService';
 import accountApple from '../../assets/public-home/account-apple-figma.png';
 import accountGoogle from '../../assets/public-home/account-google-figma.svg';
 import accountMos from '../../assets/public-home/account-mos-figma.svg';
@@ -70,6 +70,7 @@ const fastPaySlides = [
 
 const FAST_PAY_AUTOPLAY_DELAY_MS = 5000;
 const fastPayCarouselSlides = [fastPaySlides[0], fastPaySlides[1], fastPaySlides[0], fastPaySlides[1]] as const;
+const TRANSPORT_CARD_DIGITS_LENGTH = 10;
 
 type ServiceCard = (typeof serviceCards)[number];
 
@@ -114,6 +115,21 @@ const formatPhoneDigits = (digits: string) => {
 const formatPhoneForAuthUsername = (digits: string) => `7${digits}`;
 
 const formatPhoneForDisplay = (digits: string) => `+7 ${formatPhoneDigits(digits)}`;
+
+const normalizeTransportCardDigits = (value: string) => value.replace(/\D/g, '').slice(0, TRANSPORT_CARD_DIGITS_LENGTH);
+
+const formatTransportCardDigits = (digits: string) => {
+  const first = digits.slice(0, 4);
+  const second = digits.slice(4, 7);
+  const third = digits.slice(7, 10);
+
+  return [first, second, third].filter(Boolean).join(' ');
+};
+
+const formatMoney = (value: number) =>
+  new Intl.NumberFormat('ru-RU', {
+    maximumFractionDigits: 0,
+  }).format(value);
 
 const formatTimer = (seconds: number) => {
   const minutes = Math.floor(seconds / 60);
@@ -876,51 +892,309 @@ export const FastPayBanner = ({ onDismiss }: FastPayBannerProps) => {
   );
 };
 
-type MockFieldProps = {
-  label: string;
-  value: string;
-  icon?: 'card' | 'payment';
-  suffix?: string;
-  selectable?: boolean;
+type TopUpTab = 'wallet' | 'tickets';
+type TopUpLookupStatus = 'idle' | 'loading' | 'found' | 'not-found' | 'error';
+
+type TopUpTicketOption = {
+  id: string;
+  name: string;
+  price?: number;
+  category?: string;
+  section?: string;
 };
 
-const MockField = ({ label, value, icon, suffix, selectable = false }: MockFieldProps) => (
+type TopUpCardProducts = {
+  cardNumber: string;
+  cardTitle: string;
+  cardType?: string;
+  wallet?: WalletProduct;
+  tickets: TopUpTicketOption[];
+};
+
+const getErrorStatusCode = (error: unknown) => {
+  if (!isRecord(error) || !isRecord(error.response)) {
+    return undefined;
+  }
+
+  return readNumber(error.response, ['status']);
+};
+
+const getCardTitle = (card: CardSearchItem) => card.cmsTitle || card.cmsName || card.typeName || 'Транспортная карта';
+
+const getTicketProductId = (product: { productId?: string; id?: string; name?: string }, index: number) =>
+  product.productId || product.id || `${product.name || 'ticket'}-${index}`;
+
+const normalizeTicketCatalogProducts = (response: TicketProductsResponse, card: CardSearchItem): TopUpCardProducts => {
+  const categories = response.availableProducts?.categories ?? [];
+  const tickets = categories.flatMap((category) =>
+    (category.sections ?? []).flatMap((section) =>
+      (section.products ?? []).map((product, index) => ({
+        category: category.title,
+        id: getTicketProductId(product, index),
+        name: product.name || section.title || category.title || 'Билет',
+        price: product.price,
+        section: section.title,
+      })),
+    ),
+  );
+
+  return {
+    cardNumber: card.number || response.card?.cardNumberMasked || '',
+    cardTitle: getCardTitle(card),
+    cardType: response.card?.cardType || card.typeId,
+    tickets,
+    wallet: response.availableProducts?.wallet,
+  };
+};
+
+const normalizePaymentValidationProducts = (response: PaymentValidationResponse, card: CardSearchItem): TopUpCardProducts => ({
+  cardNumber: card.number || response.data?.card?.cardNumber || '',
+  cardTitle: response.data?.card?.displayName || getCardTitle(card),
+  cardType: response.data?.card?.cardType || card.typeId,
+  tickets: (response.data?.availableProducts ?? []).map((product, index) => ({
+    category: product.typeName,
+    id: getTicketProductId(product, index),
+    name: product.name || 'Билет',
+    price: product.price ?? product.priceMin,
+    section: product.descr,
+  })),
+  wallet: response.data?.availableWallet,
+});
+
+const TopUpPaymentField = () => (
   <label className="field">
-    <span>{label}</span>
-    <span className={`mock-input${selectable ? ' mock-input--select' : ''}`}>
-      {icon && <span className={`field-icon field-icon--${icon}`} />}
-      <span>{value}</span>
-      {suffix && <span className="rub">{suffix}</span>}
-      {selectable && <span className="chevron" aria-hidden="true" />}
+    <span>Способ оплаты</span>
+    <button className="top-up-action-card top-up-action-card--select" type="button">
+      <span className="field-icon field-icon--payment" aria-hidden="true" />
+      <span>Выберите способ оплаты</span>
+      <span className="chevron" aria-hidden="true" />
+    </button>
+  </label>
+);
+
+type TopUpReceiptFieldProps = {
+  value: string;
+  onChange: (value: string) => void;
+};
+
+const TopUpReceiptField = ({ value, onChange }: TopUpReceiptFieldProps) => (
+  <label className="field">
+    <span>Направить чек</span>
+    <span className="top-up-input-shell">
+      <input
+        className="top-up-input"
+        onChange={(event) => onChange(event.target.value)}
+        placeholder="example@mail.ru"
+        type="email"
+        value={value}
+      />
     </span>
   </label>
 );
 
-export const TopUpBalanceCard = () => (
-  <section className="top-up-panel" aria-labelledby="top-up-title">
-    <h2 id="top-up-title">Пополнить баланс</h2>
+export const TopUpBalanceCard = () => {
+  const lookupRequestId = useRef(0);
+  const [activeTab, setActiveTab] = useState<TopUpTab>('wallet');
+  const [cardDigits, setCardDigits] = useState('');
+  const [lookupStatus, setLookupStatus] = useState<TopUpLookupStatus>('idle');
+  const [cardProducts, setCardProducts] = useState<TopUpCardProducts | null>(null);
+  const [amount, setAmount] = useState('');
+  const [receiptEmail, setReceiptEmail] = useState('');
 
-    <div className="top-up-tabs" role="tablist" aria-label="Тип пополнения">
-      <button className="top-up-tabs__tab top-up-tabs__tab--active" type="button">
-        Кошелек
-      </button>
-      <button className="top-up-tabs__tab" type="button">
-        Билеты
-      </button>
-    </div>
+  const formattedCardNumber = useMemo(() => formatTransportCardDigits(cardDigits), [cardDigits]);
+  const selectedTicket = cardProducts?.tickets[0];
+  const walletRange = useMemo(() => {
+    const min = cardProducts?.wallet?.priceMin;
+    const max = cardProducts?.wallet?.priceMax;
 
-    <form className="top-up-form">
-      <MockField label="Номер транспортной карты" value="1234 567 890" icon="card" selectable />
-      <MockField label="Сумма пополнения" value="0" suffix="₽" />
-      <MockField label="Способ оплаты" value="Выберите способ оплаты" icon="payment" selectable />
-      <MockField label="Направить чек" value="example@mail.ru" />
+    if (typeof min !== 'number' || typeof max !== 'number') {
+      return '';
+    }
 
-      <button className="primary-disabled-button top-up-submit" type="button">
-        Пополнить
-      </button>
-    </form>
-  </section>
-);
+    return `${formatMoney(min)} - ${formatMoney(max)}`;
+  }, [cardProducts?.wallet?.priceMax, cardProducts?.wallet?.priceMin]);
+
+  useEffect(() => {
+    if (cardDigits.length !== TRANSPORT_CARD_DIGITS_LENGTH) {
+      return;
+    }
+
+    const requestId = lookupRequestId.current + 1;
+    lookupRequestId.current = requestId;
+
+    const loadCardProducts = async () => {
+      try {
+        const searchResponse = await apiService.searchCardsByNumber(cardDigits);
+        const card = searchResponse.cards?.[0];
+
+        if (!card?.uid) {
+          setLookupStatus('not-found');
+          return;
+        }
+
+        let products: TopUpCardProducts;
+
+        try {
+          const ticketProducts = await apiService.getTicketProductsByCardUid(card.uid);
+          products = normalizeTicketCatalogProducts(ticketProducts, card);
+        } catch {
+          const validationProducts = await apiService.validateCardPaymentProducts(card.uid);
+          products = normalizePaymentValidationProducts(validationProducts, card);
+        }
+
+        if (lookupRequestId.current !== requestId) {
+          return;
+        }
+
+        setCardProducts(products);
+        setLookupStatus('found');
+      } catch (error) {
+        if (lookupRequestId.current !== requestId) {
+          return;
+        }
+
+        setCardProducts(null);
+        setLookupStatus(getErrorStatusCode(error) === 400 ? 'not-found' : 'error');
+      }
+    };
+
+    void loadCardProducts();
+  }, [cardDigits]);
+
+  const handleCardChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const nextDigits = normalizeTransportCardDigits(event.target.value);
+    setCardDigits(nextDigits);
+
+    if (nextDigits.length !== TRANSPORT_CARD_DIGITS_LENGTH) {
+      lookupRequestId.current += 1;
+      setLookupStatus('idle');
+      setCardProducts(null);
+      return;
+    }
+
+    setLookupStatus('loading');
+    setCardProducts(null);
+  };
+
+  const handleAmountChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setAmount(event.target.value.replace(/[^\d]/g, ''));
+  };
+
+  const cardStateClass = lookupStatus === 'found' ? ' top-up-card-field--found' : lookupStatus === 'not-found' || lookupStatus === 'error' ? ' top-up-card-field--error' : '';
+
+  return (
+    <section className="top-up-panel" aria-labelledby="top-up-title">
+      <h2 id="top-up-title">Пополнить баланс</h2>
+
+      <div className="top-up-tabs" role="tablist" aria-label="Тип пополнения">
+        <button
+          aria-selected={activeTab === 'wallet'}
+          className={`top-up-tabs__tab${activeTab === 'wallet' ? ' top-up-tabs__tab--active' : ''}`}
+          onClick={() => setActiveTab('wallet')}
+          role="tab"
+          type="button"
+        >
+          Кошелек
+        </button>
+        <button
+          aria-selected={activeTab === 'tickets'}
+          className={`top-up-tabs__tab${activeTab === 'tickets' ? ' top-up-tabs__tab--active' : ''}`}
+          onClick={() => setActiveTab('tickets')}
+          role="tab"
+          type="button"
+        >
+          Билеты
+        </button>
+      </div>
+
+      <form className="top-up-form">
+        <label className="field top-up-card-field">
+          <span>Номер транспортной карты</span>
+          <span className={`top-up-card-input-shell${cardStateClass}`}>
+            <span className="field-icon field-icon--card" aria-hidden="true" />
+            <input
+              aria-invalid={lookupStatus === 'not-found' || lookupStatus === 'error'}
+              className="top-up-card-input"
+              inputMode="numeric"
+              maxLength={12}
+              onChange={handleCardChange}
+              placeholder="1234 567 890"
+              type="text"
+              value={formattedCardNumber}
+            />
+            {lookupStatus === 'loading' && <span className="top-up-mini-loader" aria-label="Ищем карту" />}
+            {(lookupStatus === 'found' || lookupStatus === 'not-found' || lookupStatus === 'error') && (
+              <span className="top-up-card-status-icon" aria-hidden="true">
+                {lookupStatus === 'found' ? '✓' : '!'}
+              </span>
+            )}
+          </span>
+          {lookupStatus === 'found' && <span className="top-up-card-message top-up-card-message--success">Номер карты успешно найден</span>}
+          {lookupStatus === 'not-found' && <span className="top-up-card-message top-up-card-message--error">Номер карты не найден</span>}
+          {lookupStatus === 'error' && <span className="top-up-card-message top-up-card-message--error">Не удалось проверить карту</span>}
+        </label>
+
+        {activeTab === 'wallet' ? (
+          <>
+            <label className="field">
+              <span>Сумма пополнения</span>
+              <span className="top-up-input-shell">
+                <input
+                  className="top-up-input top-up-input--amount"
+                  disabled={!cardProducts?.wallet}
+                  inputMode="numeric"
+                  onChange={handleAmountChange}
+                  placeholder={walletRange || '0'}
+                  type="text"
+                  value={amount}
+                />
+                <span className="rub">₽</span>
+              </span>
+            </label>
+            <TopUpPaymentField />
+            <TopUpReceiptField value={receiptEmail} onChange={setReceiptEmail} />
+            <button className="primary-disabled-button top-up-submit" disabled type="button">
+              Пополнить
+            </button>
+          </>
+        ) : (
+          <>
+            <label className="field">
+              <span>Вид билета</span>
+              <button className="top-up-action-card top-up-action-card--select" disabled={!selectedTicket} type="button">
+                <span className="field-icon field-icon--ticket" aria-hidden="true" />
+                <span>{selectedTicket ? selectedTicket.name : 'Выберите тип билета'}</span>
+                <span className="chevron" aria-hidden="true" />
+              </button>
+            </label>
+            {cardProducts && (
+              <div className="top-up-ticket-preview" aria-live="polite">
+                {cardProducts.tickets.length ? (
+                  cardProducts.tickets.slice(0, 3).map((ticket) => (
+                    <button className="top-up-ticket-option" key={ticket.id} type="button">
+                      <span>
+                        <strong>{ticket.name}</strong>
+                        {(ticket.category || ticket.section) && <small>{[ticket.category, ticket.section].filter(Boolean).join(' • ')}</small>}
+                      </span>
+                      {typeof ticket.price === 'number' && <b>{formatMoney(ticket.price)} ₽</b>}
+                    </button>
+                  ))
+                ) : (
+                  <p className="top-up-ticket-empty">Для этой карты билеты недоступны</p>
+                )}
+              </div>
+            )}
+            <TopUpPaymentField />
+            <TopUpReceiptField value={receiptEmail} onChange={setReceiptEmail} />
+            <button className="primary-disabled-button top-up-submit" disabled type="button">
+              Купить билет
+            </button>
+          </>
+        )}
+      </form>
+    </section>
+  );
+};
 
 export const PublicFooter = () => (
   <footer className="public-footer">

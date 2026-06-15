@@ -5,6 +5,7 @@ const API_BASE_URL = 'https://dev2-mm.srvdev.ru/ppa.webapi.apps';
 const AUTH_API_BASE_URL = import.meta.env.VITE_AUTH_API_URL || '/passenger.auth';
 const PASSENGER_API_BASE_URL = import.meta.env.VITE_PASSENGER_API_URL || '/passenger/api';
 const MAAS_API_BASE_URL = import.meta.env.VITE_MAAS_API_URL || '/maas';
+const TICKET_CATALOG_API_BASE_URL = import.meta.env.VITE_TICKET_CATALOG_API_URL || 'https://mosmetro.brndev.ru/ticket-catalog-service/v1';
 const AUTH_BASIC_TOKEN = 'Basic ZjljM2M4NTktOTc3YS00ZWI3LTliY2UtNDM2OTk2NGRmODU1OlJkb3pEZjkzakxLcDI2MzVFcG1KVUwzbWM2bzFVSw==';
 const OTP_SCOPE = 'openid nbs.ppa phone email idps';
 
@@ -41,11 +42,94 @@ export type DashboardBootstrapResponse = {
   }>;
 };
 
+export type CardSearchItem = {
+  number?: string;
+  uid?: string;
+  typeId?: string;
+  typeName?: string;
+  cmsName?: string;
+  cmsTitle?: string;
+  limited?: boolean;
+  icon?: string;
+  img?: string;
+};
+
+export type CardSearchResponse = {
+  cards?: CardSearchItem[];
+};
+
+export type WalletProduct = {
+  id?: string;
+  name?: string;
+  priceMin?: number;
+  priceMax?: number;
+  paymentTypes?: string[];
+};
+
+export type TicketProduct = {
+  productId?: string;
+  id?: string;
+  durationDays?: number | null;
+  name?: string;
+  descr?: string;
+  price?: number;
+  priceMin?: number;
+  priceMax?: number;
+  pricePerDay?: number | null;
+  paymentTypes?: string[];
+  typeName?: string;
+};
+
+export type TicketProductSection = {
+  iconType?: string;
+  title?: string;
+  subtitle?: string | null;
+  products?: TicketProduct[];
+};
+
+export type TicketProductCategory = {
+  iconType?: string;
+  productIconType?: string;
+  title?: string;
+  subtitle?: string | null;
+  sections?: TicketProductSection[];
+};
+
+export type TicketProductsResponse = {
+  card?: {
+    cardUid?: string;
+    linkedCardId?: string;
+    cardType?: string;
+    cardNumberMasked?: string;
+  };
+  availableProducts?: {
+    wallet?: WalletProduct;
+    categories?: TicketProductCategory[];
+  };
+};
+
+export type PaymentValidationResponse = {
+  data?: {
+    card?: {
+      cardNumber?: string;
+      displayName?: string;
+      limited?: boolean;
+      cardType?: string;
+      icon?: string;
+      img?: string;
+    };
+    availableProducts?: TicketProduct[];
+    availableWallet?: WalletProduct;
+  };
+  success?: boolean;
+};
+
 class ApiService {
   private readonly api: AxiosInstance;
   private readonly authApi: AxiosInstance;
   private readonly passengerApi: AxiosInstance;
   private readonly maasApi: AxiosInstance;
+  private readonly ticketCatalogApi: AxiosInstance;
   private dashboardBootstrapRequest: Promise<DashboardBootstrapResponse> | null = null;
 
   constructor() {
@@ -74,9 +158,17 @@ class ApiService {
       },
     });
 
+    this.ticketCatalogApi = axios.create({
+      baseURL: TICKET_CATALOG_API_BASE_URL,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
     this.api.interceptors.request.use((config: InternalAxiosRequestConfig) => this.withBearerToken(config));
     this.passengerApi.interceptors.request.use((config: InternalAxiosRequestConfig) => this.withBearerToken(config));
     this.maasApi.interceptors.request.use((config: InternalAxiosRequestConfig) => this.withBearerToken(config));
+    this.ticketCatalogApi.interceptors.request.use((config: InternalAxiosRequestConfig) => this.withBearerToken(config));
 
     const handleUnauthorized = (error: AxiosError) => {
       if (error.response?.status === 401) {
@@ -91,6 +183,7 @@ class ApiService {
     this.api.interceptors.response.use((response: AxiosResponse) => response, handleUnauthorized);
     this.passengerApi.interceptors.response.use((response: AxiosResponse) => response, handleUnauthorized);
     this.maasApi.interceptors.response.use((response: AxiosResponse) => response, handleUnauthorized);
+    this.ticketCatalogApi.interceptors.response.use((response: AxiosResponse) => response);
   }
 
   private withBearerToken(config: InternalAxiosRequestConfig) {
@@ -171,6 +264,31 @@ class ApiService {
 
   async getMaasUserInfo(): Promise<unknown> {
     const response = await this.maasApi.get<unknown>('/api/user/v2/info');
+    return response.data;
+  }
+
+  async searchCardsByNumber(cardNumber: string): Promise<CardSearchResponse> {
+    const response = await this.passengerApi.get<CardSearchResponse>('/cards/v1.0', {
+      params: {
+        cardNumber,
+      },
+    });
+
+    return response.data;
+  }
+
+  async getTicketProductsByCardUid(cardUid: string): Promise<TicketProductsResponse> {
+    const response = await this.ticketCatalogApi.get<TicketProductsResponse>(`/tickets/cards/by-uid/${encodeURIComponent(cardUid)}/products`);
+    return response.data;
+  }
+
+  async getTicketProductsByLinkedCardId(linkedCardId: string): Promise<TicketProductsResponse> {
+    const response = await this.ticketCatalogApi.get<TicketProductsResponse>(`/tickets/cards/${encodeURIComponent(linkedCardId)}/products`);
+    return response.data;
+  }
+
+  async validateCardPaymentProducts(cardUid: string): Promise<PaymentValidationResponse> {
+    const response = await this.passengerApi.get<PaymentValidationResponse>(`/cards/v1.0/${encodeURIComponent(cardUid)}/validate/payment`);
     return response.data;
   }
 
