@@ -946,7 +946,7 @@ const normalizeTicketCatalogProducts = (response: TicketProductsResponse, card: 
     cardTitle: getCardTitle(card),
     cardType: response.card?.cardType || card.typeId,
     tickets,
-    wallet: response.availableProducts?.wallet,
+    wallet: response.availableProducts?.wallet ?? undefined,
   };
 };
 

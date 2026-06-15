@@ -103,7 +103,7 @@ export type TicketProductsResponse = {
     cardNumberMasked?: string;
   };
   availableProducts?: {
-    wallet?: WalletProduct;
+    wallet?: WalletProduct | null;
     categories?: TicketProductCategory[];
   };
 };
@@ -278,12 +278,20 @@ class ApiService {
   }
 
   async getTicketProductsByCardUid(cardUid: string): Promise<TicketProductsResponse> {
-    const response = await this.ticketCatalogApi.get<TicketProductsResponse>(`/tickets/cards/by-uid/${encodeURIComponent(cardUid)}/products`);
+    const response = await this.ticketCatalogApi.get<TicketProductsResponse>(`/tickets/cards/by-uid/${encodeURIComponent(cardUid)}/products`, {
+      params: {
+        language: 'ru',
+      },
+    });
     return response.data;
   }
 
   async getTicketProductsByLinkedCardId(linkedCardId: string): Promise<TicketProductsResponse> {
-    const response = await this.ticketCatalogApi.get<TicketProductsResponse>(`/tickets/cards/${encodeURIComponent(linkedCardId)}/products`);
+    const response = await this.ticketCatalogApi.get<TicketProductsResponse>(`/tickets/cards/${encodeURIComponent(linkedCardId)}/products`, {
+      params: {
+        language: 'ru',
+      },
+    });
     return response.data;
   }
 
