@@ -982,10 +982,6 @@
   position: relative;
 }
 
-.field-icon--payment {
-  background: #dfe8ff;
-}
-
 .field-icon--card,
 .field-icon--ticket {
   background: #55b0c2;
@@ -1007,6 +1003,20 @@
     linear-gradient(#ffffff, #ffffff) left 50% / 5px 2px no-repeat,
     linear-gradient(#ffffff, #ffffff) center 50% / 5px 2px no-repeat,
     linear-gradient(#ffffff, #ffffff) right 50% / 5px 2px no-repeat;
+}
+
+.payment-method-icon {
+  width: 25px;
+  height: 18px;
+  flex: 0 0 auto;
+  display: block;
+}
+
+.top-up-payment-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .chevron {

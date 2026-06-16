@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ChangeEvent, FormEvent, KeyboardEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { apiService } from '../../api/apiService';
-import type { CardSearchItem, OtpStartResponse, PaymentValidationResponse, TicketProductsResponse, WalletProduct } from '../../api/apiService';
+import type { CardSearchItem, OtpStartResponse, TicketProductsResponse, WalletProduct } from '../../api/apiService';
 import accountApple from '../../assets/public-home/account-apple-figma.png';
 import accountGoogle from '../../assets/public-home/account-google-figma.svg';
 import accountMos from '../../assets/public-home/account-mos-figma.svg';
@@ -16,6 +16,7 @@ import feedbackCard from '../../assets/public-home/feedback-figma.png';
 import iconCloseDark from '../../assets/public-home/icon-close-dark-figma.svg';
 import iconClose from '../../assets/public-home/icon-close-figma.svg';
 import metroLogo from '../../assets/public-home/metro-logo.svg';
+import paymentCardPlaceholder from '../../assets/public-home/payment-card-placeholder.svg';
 import serviceBike from '../../assets/public-home/service-bike-figma.png';
 import serviceDriver from '../../assets/public-home/service-driver-figma.png';
 import serviceTaxi from '../../assets/public-home/service-taxi-figma.png';
@@ -903,6 +904,7 @@ type TopUpTicketOption = {
   id: string;
   name: string;
   price?: number;
+  paymentTypes?: string[];
   category?: string;
   section?: string;
 };
@@ -936,6 +938,7 @@ const normalizeTicketCatalogProducts = (response: TicketProductsResponse, card: 
         category: category.title,
         id: getTicketProductId(product, index),
         name: product.name || section.title || category.title || 'Билет',
+        paymentTypes: product.paymentTypes ?? undefined,
         price: product.price,
         section: section.title,
       })),
@@ -950,20 +953,6 @@ const normalizeTicketCatalogProducts = (response: TicketProductsResponse, card: 
     wallet: response.availableProducts?.wallet ?? undefined,
   };
 };
-
-const normalizePaymentValidationProducts = (response: PaymentValidationResponse, card: CardSearchItem): TopUpCardProducts => ({
-  cardNumber: card.number || response.data?.card?.cardNumber || '',
-  cardTitle: response.data?.card?.displayName || getCardTitle(card),
-  cardType: response.data?.card?.cardType || card.typeId,
-  tickets: (response.data?.availableProducts ?? []).map((product, index) => ({
-    category: product.typeName,
-    id: getTicketProductId(product, index),
-    name: product.name || 'Билет',
-    price: product.price ?? product.priceMin,
-    section: product.descr,
-  })),
-  wallet: response.data?.availableWallet,
-});
 
 const getCardSearchText = (card: CardSearchItem) =>
   [card.typeId, card.typeName, card.cmsName, card.cmsTitle].filter(Boolean).join(' ').toLowerCase();
@@ -994,16 +983,33 @@ const getTopUpTransportCardIcon = (status: TopUpLookupStatus, cardType?: string)
   return isVirtualTroikaType(cardType) ? transportCardVirtualTroika : transportCardTroika;
 };
 
-const TopUpPaymentField = () => (
-  <label className="field">
-    <span>Способ оплаты</span>
-    <button className="top-up-action-card top-up-action-card--select" type="button">
-      <span className="field-icon field-icon--payment" aria-hidden="true" />
-      <span>Выберите способ оплаты</span>
-      <span className="chevron" aria-hidden="true" />
-    </button>
-  </label>
-);
+const PAYMENT_TYPE_LABELS: Record<string, string> = {
+  bankCard: 'Банковская карта',
+  linkedBankCard: 'Привязанная банковская карта',
+  mirPay: 'Mir Pay',
+  sbp: 'СБП',
+};
+
+const getPaymentTypeLabel = (type: string) => PAYMENT_TYPE_LABELS[type] ?? type;
+
+type TopUpPaymentFieldProps = {
+  paymentTypes: string[];
+};
+
+const TopUpPaymentField = ({ paymentTypes }: TopUpPaymentFieldProps) => {
+  const paymentLabel = paymentTypes.length ? paymentTypes.map(getPaymentTypeLabel).join(', ') : 'Выберите способ оплаты';
+
+  return (
+    <label className="field">
+      <span>Способ оплаты</span>
+      <button className="top-up-action-card top-up-action-card--select" type="button">
+        <img className="payment-method-icon" src={paymentCardPlaceholder} alt="" aria-hidden="true" />
+        <span className="top-up-payment-label">{paymentLabel}</span>
+        <span className="chevron" aria-hidden="true" />
+      </button>
+    </label>
+  );
+};
 
 type TopUpReceiptFieldProps = {
   value: string;
@@ -1037,6 +1043,7 @@ export const TopUpBalanceCard = () => {
   const formattedCardNumber = useMemo(() => formatTransportCardDigits(cardDigits), [cardDigits]);
   const selectedTicket = cardProducts?.tickets[0];
   const transportCardIcon = getTopUpTransportCardIcon(lookupStatus, cardProducts?.cardType);
+  const availablePaymentTypes = activeTab === 'wallet' ? cardProducts?.wallet?.paymentTypes ?? [] : selectedTicket?.paymentTypes ?? [];
   const walletRange = useMemo(() => {
     const min = cardProducts?.wallet?.priceMin;
     const max = cardProducts?.wallet?.priceMax;
@@ -1066,15 +1073,8 @@ export const TopUpBalanceCard = () => {
           return;
         }
 
-        let products: TopUpCardProducts;
-
-        try {
-          const ticketProducts = await apiService.getTicketProductsByCardUid(card.uid);
-          products = normalizeTicketCatalogProducts(ticketProducts, card);
-        } catch {
-          const validationProducts = await apiService.validateCardPaymentProducts(card.uid);
-          products = normalizePaymentValidationProducts(validationProducts, card);
-        }
+        const ticketProducts = await apiService.getTicketProductsByCardUid(card.uid);
+        const products = normalizeTicketCatalogProducts(ticketProducts, card);
 
         if (lookupRequestId.current !== requestId) {
           return;
@@ -1185,7 +1185,7 @@ export const TopUpBalanceCard = () => {
                 <span className="rub">₽</span>
               </span>
             </label>
-            <TopUpPaymentField />
+            <TopUpPaymentField paymentTypes={availablePaymentTypes} />
             <TopUpReceiptField value={receiptEmail} onChange={setReceiptEmail} />
             <button className="primary-disabled-button top-up-submit" disabled type="button">
               Пополнить
@@ -1218,7 +1218,7 @@ export const TopUpBalanceCard = () => {
                 )}
               </div>
             )}
-            <TopUpPaymentField />
+            <TopUpPaymentField paymentTypes={availablePaymentTypes} />
             <TopUpReceiptField value={receiptEmail} onChange={setReceiptEmail} />
             <button className="primary-disabled-button top-up-submit" disabled type="button">
               Купить билет
