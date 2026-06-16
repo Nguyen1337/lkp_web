@@ -137,6 +137,11 @@ export type TicketProductsResponse = {
     wallet?: WalletProduct | null;
     categories?: TicketProductCategory[];
   };
+  icons?: {
+    categories?: Record<string, string[]>;
+    sections?: Record<string, string[]>;
+    products?: Record<string, string[]>;
+  };
 };
 
 export type PaymentValidationResponse = {

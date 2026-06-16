@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { TicketCategoryBundleIcon, TicketRowIcon } from './ticketIcons';
 
 export type TicketCatalogOption = {
   id: string;
@@ -15,7 +14,7 @@ export type TicketCatalogOption = {
 export type TicketCatalogTicket = {
   id: string;
   category?: string;
-  iconType?: string;
+  productIconUrl?: string;
   isFreezable?: boolean;
   isRecommended?: boolean;
   descr?: string | null;
@@ -28,7 +27,7 @@ export type TicketCatalogTicket = {
 
 export type TicketCatalogCategory = {
   id: string;
-  iconType?: string;
+  iconUrls: string[];
   subtitle?: string | null;
   tickets: TicketCatalogTicket[];
   title: string;
@@ -106,7 +105,13 @@ export const TicketCatalog = ({ categories, isCardEntered, isLoading = false, se
         return (
           <section className="top-up-ticket-category" key={category.id}>
             <div className="top-up-ticket-category__header">
-              <TicketCategoryBundleIcon className="top-up-ticket-category__bundle" type={category.iconType} />
+              {category.iconUrls.length > 0 && (
+                <div className="top-up-ticket-category__bundle" aria-hidden="true">
+                  {category.iconUrls.map((url) => (
+                    <img key={url} src={url} alt="" />
+                  ))}
+                </div>
+              )}
               <div className="top-up-ticket-category__title">
                 <strong>{category.title}</strong>
                 {category.subtitle && <span>{category.subtitle}</span>}
@@ -116,7 +121,6 @@ export const TicketCatalog = ({ categories, isCardEntered, isLoading = false, se
             <div className="top-up-ticket-category__tickets">
               {category.tickets.map((ticket) => {
                 const isSelected = ticket.id === selectedTicket?.id;
-                const ticketIconType = ticket.iconType ?? category.iconType;
                 const enabledOptionIdsForTicket = enabledOptionIds[ticket.id] ?? [];
                 const selectedOptions =
                   ticket.options?.filter((option) => enabledOptionIdsForTicket.includes(option.id) || Boolean(option.isDefault)) ?? [];
@@ -131,7 +135,7 @@ export const TicketCatalog = ({ categories, isCardEntered, isLoading = false, se
                       onClick={() => onSelectTicket(ticket.id)}
                       type="button"
                     >
-                      <TicketRowIcon className="top-up-ticket-option__icon" type={ticketIconType} />
+                      {ticket.productIconUrl && <img className="top-up-ticket-option__icon" src={ticket.productIconUrl} alt="" aria-hidden="true" />}
                       <span className="top-up-ticket-option__content">
                         <span className="top-up-ticket-option__title-row">
                           <strong>{ticket.name}</strong>

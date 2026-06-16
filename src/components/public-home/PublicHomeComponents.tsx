@@ -995,7 +995,7 @@ const normalizeTicketCatalogProducts = (response: TicketProductsResponse, card: 
           category: category.title,
           descr: product.descr ?? undefined,
           id: productId,
-          iconType: category.productIconType ?? category.iconType,
+          productIconUrl: (response.icons?.products?.[category.productIconType ?? category.iconType ?? ''] ?? [])[0],
           isFreezable: readBoolean(product, ['isFreezable']) ?? product.isFreezable ?? undefined,
           isRecommended: readBoolean(product, ['isRecommended']) ?? product.isRecommended ?? undefined,
           name: product.name || section.title || category.title || 'Билет',
@@ -1021,7 +1021,7 @@ const normalizeTicketCatalogProducts = (response: TicketProductsResponse, card: 
 
     return {
       id: `${category.iconType || category.title || 'category'}-${categoryIndex}`,
-      iconType: category.iconType,
+      iconUrls: response.icons?.categories?.[category.iconType ?? ''] ?? [],
       subtitle: category.subtitle,
       tickets,
       title: category.title || 'Билеты',
