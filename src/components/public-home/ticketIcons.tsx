@@ -44,11 +44,19 @@ const TICKET_ICON_SETS: Record<TicketCategoryType, IconSet> = {
   },
 };
 
-const normalizeTicketCategoryType = (value?: string) => value?.trim().toUpperCase() ?? 'UNIFIED';
+const normalizeTicketCategoryType = (value?: string): TicketCategoryType => {
+  const normalized = value?.trim().toUpperCase();
 
-const getTicketCategoryRowIcon = (type?: string) => TICKET_ICON_SETS[normalizeTicketCategoryType(type) as TicketCategoryType].rowIcon;
+  if (normalized === 'TRAIN' || normalized === 'TAT') {
+    return normalized;
+  }
 
-const getTicketCategoryBundleIcons = (type?: string) => TICKET_ICON_SETS[normalizeTicketCategoryType(type) as TicketCategoryType].categoryIcons;
+  return 'UNIFIED';
+};
+
+const getTicketCategoryRowIcon = (type?: string) => TICKET_ICON_SETS[normalizeTicketCategoryType(type)].rowIcon;
+
+const getTicketCategoryBundleIcons = (type?: string) => TICKET_ICON_SETS[normalizeTicketCategoryType(type)].categoryIcons;
 
 type TicketRowIconProps = {
   alt?: string;
