@@ -22,6 +22,12 @@ export default defineConfig({
         secure: true,
         rewrite: (path) => path.replace(/^\/maas/, ''),
       },
+      '/ticket-catalog': {
+        target: 'https://mosmetro.brndev.ru',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/ticket-catalog/, '/ticket-catalog-service/v1'),
+      },
     },
   },
 });
