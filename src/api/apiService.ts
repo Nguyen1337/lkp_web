@@ -5,7 +5,7 @@ const API_BASE_URL = 'https://dev2-mm.srvdev.ru/ppa.webapi.apps';
 const AUTH_API_BASE_URL = import.meta.env.VITE_AUTH_API_URL || '/passenger.auth';
 const PASSENGER_API_BASE_URL = import.meta.env.VITE_PASSENGER_API_URL || '/passenger/api';
 const MAAS_API_BASE_URL = import.meta.env.VITE_MAAS_API_URL || '/maas';
-const TICKET_CATALOG_API_BASE_URL = import.meta.env.VITE_TICKET_CATALOG_API_URL || 'https://mosmetro.brndev.ru/ticket-catalog-service/v1';
+const TICKET_CATALOG_API_BASE_URL = import.meta.env.VITE_TICKET_CATALOG_API_URL || '/ticket-catalog';
 const AUTH_BASIC_TOKEN = 'Basic ZjljM2M4NTktOTc3YS00ZWI3LTliY2UtNDM2OTk2NGRmODU1OlJkb3pEZjkzakxLcDI2MzVFcG1KVUwzbWM2bzFVSw==';
 const OTP_SCOPE = 'openid nbs.ppa phone email idps';
 
