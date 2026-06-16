@@ -1,5 +1,10 @@
 import './TransitBadges.css';
 import busLineBadge from '../../assets/ui-kit/bus-line-badge.svg';
+import paymentVisa from '../../assets/ui-kit/payment-visa.svg';
+import paymentMir from '../../assets/ui-kit/payment-mir.svg';
+import paymentMastercard from '../../assets/ui-kit/payment-mastercard.svg';
+import paymentUnionpay from '../../assets/ui-kit/payment-unionpay.svg';
+import paymentBankCard from '../../assets/ui-kit/payment-bank-card.svg';
 
 export type SubwayLineType =
   | 'Default'
@@ -73,14 +78,26 @@ export const FreezeStatusBadge = ({ type, className = '' }: BadgeProps<FreezeSta
   </span>
 );
 
-export const PaymentSystemBadge = ({ type, className = '' }: BadgeProps<PaymentSystemType>) => {
-  const labelByType: Record<PaymentSystemType, string> = {
-    MASTERCARD: 'MC',
-    MIR: 'MIR',
-    UNIONPAY: 'UP',
-    UNKNOWN: '',
-    VISA: 'VISA',
-  };
-
-  return <span className={`payment-system-badge payment-system-badge--${type.toLowerCase()} ${className}`}>{labelByType[type]}</span>;
+const PAYMENT_SYSTEM_ICONS: Record<PaymentSystemType, string> = {
+  MIR: paymentMir,
+  VISA: paymentVisa,
+  MASTERCARD: paymentMastercard,
+  UNIONPAY: paymentUnionpay,
+  UNKNOWN: paymentBankCard,
 };
+
+const PAYMENT_SYSTEM_ALT: Record<PaymentSystemType, string> = {
+  MIR: 'МИР',
+  VISA: 'Visa',
+  MASTERCARD: 'Mastercard',
+  UNIONPAY: 'UnionPay',
+  UNKNOWN: 'Банковская карта',
+};
+
+export const PaymentSystemBadge = ({ type, className = '' }: BadgeProps<PaymentSystemType>) => (
+  <img
+    src={PAYMENT_SYSTEM_ICONS[type]}
+    alt={PAYMENT_SYSTEM_ALT[type]}
+    className={`payment-system-badge ${className}`}
+  />
+);

@@ -209,9 +209,7 @@
 .payment-card__bank-system.payment-system-badge {
   width: 68px;
   height: 44px;
-  min-width: 68px;
   border-radius: 6px;
-  font-size: 10px;
 }
 
 .payment-methods-empty {
@@ -848,6 +846,7 @@
   color: var(--text);
   font-family: inherit;
   font-size: 16px;
+  cursor: pointer;
 }
 
 @media (max-width: 1260px) {

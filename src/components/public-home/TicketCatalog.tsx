@@ -22,6 +22,7 @@ export type TicketCatalogTicket = {
   options?: TicketCatalogOption[];
   paymentTypes?: string[];
   price?: number;
+  pricePerDay?: number;
   section?: string;
 };
 
@@ -165,6 +166,7 @@ export const TicketCatalog = ({ categories, isCardEntered, isLoading = false, se
                               </span>
 
                               {ticket.descr && <small>{ticket.descr}</small>}
+                              {typeof ticket.pricePerDay === 'number' && <small>{formatMoney(ticket.pricePerDay)} ₽ в день</small>}
 
                               <span className="top-up-ticket-option__badges">
                                 {ticket.isRecommended && <span className="top-up-ticket-badge top-up-ticket-badge--recommended">Рекомендуем</span>}

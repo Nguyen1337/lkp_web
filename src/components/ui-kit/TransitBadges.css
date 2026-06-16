@@ -205,54 +205,11 @@
 }
 
 .payment-system-badge {
-  min-width: 42px;
-  height: 28px;
-  padding: 0 7px;
+  display: inline-block;
+  width: 38px;
+  height: 24px;
   border-radius: 4px;
-  position: relative;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 96% 4%, #e7eeff 0, #d6e2ff 54%, #dfe8ff 100%);
-  color: #00925a;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0;
-}
-
-.payment-system-badge--visa {
-  color: #1434cb;
-}
-
-.payment-system-badge--mastercard {
-  color: #eb001b;
-}
-
-.payment-system-badge--unionpay {
-  color: #2459a8;
-}
-
-.payment-system-badge--unknown {
-  color: transparent;
-}
-
-.payment-system-badge--unknown::before {
-  content: "";
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 10px;
-  height: 8px;
-  border-radius: 2px;
-  background: #fcf2d1;
-}
-
-.payment-system-badge--unknown::after {
-  content: "";
-  position: absolute;
-  right: 7px;
-  bottom: 5px;
-  left: 7px;
-  height: 3px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.9);
+  object-fit: contain;
+  flex-shrink: 0;
+  vertical-align: middle;
 }

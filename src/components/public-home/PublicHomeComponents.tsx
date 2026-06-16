@@ -1016,6 +1016,7 @@ const normalizeTicketCatalogProducts = (response: TicketProductsResponse, card: 
           })),
           paymentTypes: product.paymentTypes ?? undefined,
           price: product.price,
+          pricePerDay: product.pricePerDay ?? undefined,
         } as TopUpTicket;
       });
 
@@ -1078,7 +1079,7 @@ const getTopUpTransportCardIcon = (status: TopUpLookupStatus, cardType?: string)
 };
 
 const PAYMENT_TYPE_LABELS: Record<string, string> = {
-  bankCard: 'Банковская карта',
+  bankCard: 'Новая банковская карта',
   linkedBankCard: 'Привязанная банковская карта',
   mirPay: 'Mir Pay',
   sbp: 'СБП',
@@ -1179,7 +1180,12 @@ const normalizeBankCards = (value: unknown): TopUpBankCardOption[] =>
   });
 
 const getTopUpPaymentChoices = (paymentTypes: string[], bankCards: TopUpBankCardOption[], isAuthenticated: boolean): TopUpPaymentChoice[] => {
-  const methodChoices = getAvailablePaymentTypes(paymentTypes, isAuthenticated, bankCards.length > 0).map((paymentType) => ({
+  const availableTypes = getAvailablePaymentTypes(paymentTypes, isAuthenticated, bankCards.length > 0);
+  // bankCard (Новая банковская карта) goes last — put it after linked bank cards
+  const nonBankCard = availableTypes.filter((t) => t !== 'bankCard');
+  const hasBankCard = availableTypes.includes('bankCard');
+
+  const methodChoicesFirst = nonBankCard.map((paymentType) => ({
     kind: 'method' as const,
     key: `method:${paymentType}`,
     label: getPaymentTypeLabel(paymentType),
@@ -1194,7 +1200,11 @@ const getTopUpPaymentChoices = (paymentTypes: string[], bankCards: TopUpBankCard
       }))
     : [];
 
-  return [...methodChoices, ...bankCardChoices];
+  const newBankCardChoice = hasBankCard
+    ? [{ kind: 'method' as const, key: 'method:bankCard', label: getPaymentTypeLabel('bankCard'), paymentType: 'bankCard' }]
+    : [];
+
+  return [...methodChoicesFirst, ...bankCardChoices, ...newBankCardChoice];
 };
 
 type TopUpPaymentFieldProps = {
@@ -1203,10 +1213,11 @@ type TopUpPaymentFieldProps = {
   selectedPaymentChoice: string | null;
   isOpen: boolean;
   isAuthenticated: boolean;
+  isCardFound: boolean;
   onOpen: () => void;
 };
 
-const TopUpPaymentField = ({ bankCards, paymentTypes, selectedPaymentChoice, isOpen, isAuthenticated, onOpen }: TopUpPaymentFieldProps) => {
+const TopUpPaymentField = ({ bankCards, paymentTypes, selectedPaymentChoice, isOpen, isAuthenticated, isCardFound, onOpen }: TopUpPaymentFieldProps) => {
   const availablePaymentChoices = getTopUpPaymentChoices(paymentTypes, bankCards, isAuthenticated);
   const currentChoice = availablePaymentChoices.find((choice) => choice.key === selectedPaymentChoice) ?? availablePaymentChoices[0];
   const paymentLabel = currentChoice
@@ -1218,7 +1229,7 @@ const TopUpPaymentField = ({ bankCards, paymentTypes, selectedPaymentChoice, isO
   return (
     <div className="field top-up-payment-field">
       <span>Способ оплаты</span>
-      <button aria-expanded={isOpen} className="top-up-action-card top-up-action-card--select" onClick={onOpen} type="button">
+      <button aria-expanded={isOpen} className="top-up-action-card top-up-action-card--select" onClick={isCardFound ? onOpen : undefined} disabled={!isCardFound} type="button">
         {currentChoice ? (
           currentChoice.kind === 'method' ? (
             <PaymentMethodIcon className="payment-method-icon" type={currentChoice.paymentType as PaymentMethodType} />
@@ -1345,6 +1356,7 @@ export const TopUpBalanceCard = () => {
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [selectedPaymentChoice, setSelectedPaymentChoice] = useState<string | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const isAuthenticated = Boolean(localStorage.getItem('authToken'));
 
   const formattedCardNumber = useMemo(() => formatTransportCardDigits(cardDigits), [cardDigits]);
@@ -1362,7 +1374,11 @@ export const TopUpBalanceCard = () => {
   }, [allTickets, selectedTicketId]);
   const selectedTicket = allTickets.find((ticket) => ticket.id === selectedTicketIdForView) ?? allTickets[0];
   const isTicketCatalogLoading = lookupStatus === 'loading';
+  const isCardFound = lookupStatus === 'found';
   const transportCardIcon = getTopUpTransportCardIcon(lookupStatus, cardProducts?.cardType);
+  const hasValidEmail = receiptEmail.trim().length > 0 && receiptEmail.includes('@');
+  const canSubmitWallet = isCardFound && Number(amount) > 0 && hasValidEmail && agreedToTerms;
+  const canSubmitTicket = isCardFound && Boolean(selectedTicketIdForView) && hasValidEmail && agreedToTerms;
   const currentPaymentTypes = useMemo(
     () => (activeTab === 'wallet' ? cardProducts?.wallet?.paymentTypes ?? [] : selectedTicket?.paymentTypes ?? []),
     [activeTab, cardProducts?.wallet?.paymentTypes, selectedTicket?.paymentTypes],
@@ -1479,7 +1495,7 @@ export const TopUpBalanceCard = () => {
   };
 
   const handlePaymentOpen = () => {
-    if (!currentPaymentTypes.length && (!isAuthenticated || !bankCards.length)) {
+    if (!isCardFound) {
       return;
     }
 
@@ -1565,6 +1581,7 @@ export const TopUpBalanceCard = () => {
             <TopUpPaymentField
               bankCards={bankCards}
               isAuthenticated={isAuthenticated}
+              isCardFound={isCardFound}
               isOpen={isPaymentModalOpen}
               onOpen={handlePaymentOpen}
               paymentTypes={currentPaymentTypes}
@@ -1580,9 +1597,27 @@ export const TopUpBalanceCard = () => {
               selectedPaymentChoice={selectedPaymentChoice}
             />
             <TopUpReceiptField value={receiptEmail} onChange={setReceiptEmail} />
-            <button className="primary-disabled-button top-up-submit" disabled type="button">
+            <button
+              className={`top-up-submit${canSubmitWallet ? ' primary-action-button' : ' primary-disabled-button'}`}
+              disabled={!canSubmitWallet}
+              type="button"
+            >
               Пополнить
             </button>
+            <label className="top-up-agreement">
+              <input
+                checked={agreedToTerms}
+                className="top-up-agreement__checkbox"
+                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                type="checkbox"
+              />
+              <span>
+                Нажимая «Пополнить» я соглашаюсь с{' '}
+                <a href="/rules" target="_blank" rel="noreferrer">порядком пользования (обращения) проездными билетами</a>
+                , даю свое согласие на получение чека посредством электронного{' '}
+                <a href="/receipt" target="_blank" rel="noreferrer">сервиса</a>
+              </span>
+            </label>
           </>
         ) : (
           <>
@@ -1599,6 +1634,7 @@ export const TopUpBalanceCard = () => {
             <TopUpPaymentField
               bankCards={bankCards}
               isAuthenticated={isAuthenticated}
+              isCardFound={isCardFound}
               isOpen={isPaymentModalOpen}
               onOpen={handlePaymentOpen}
               paymentTypes={currentPaymentTypes}
@@ -1614,9 +1650,27 @@ export const TopUpBalanceCard = () => {
               selectedPaymentChoice={selectedPaymentChoice}
             />
             <TopUpReceiptField value={receiptEmail} onChange={setReceiptEmail} />
-            <button className="primary-disabled-button top-up-submit" disabled type="button">
+            <button
+              className={`top-up-submit${canSubmitTicket ? ' primary-action-button' : ' primary-disabled-button'}`}
+              disabled={!canSubmitTicket}
+              type="button"
+            >
               Купить билет
             </button>
+            <label className="top-up-agreement">
+              <input
+                checked={agreedToTerms}
+                className="top-up-agreement__checkbox"
+                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                type="checkbox"
+              />
+              <span>
+                Нажимая «Пополнить» я соглашаюсь с{' '}
+                <a href="/rules" target="_blank" rel="noreferrer">порядком пользования (обращения) проездными билетами</a>
+                , даю свое согласие на получение чека посредством электронного{' '}
+                <a href="/receipt" target="_blank" rel="noreferrer">сервиса</a>
+              </span>
+            </label>
           </>
         )}
       </form>
