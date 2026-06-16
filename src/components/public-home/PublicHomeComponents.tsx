@@ -31,27 +31,27 @@ import { PaymentSystemBadge, type PaymentSystemType } from '../ui-kit/TransitBad
 const PHONE_DIGITS_LENGTH = 10;
 
 const footerLinks = [
-  ['MOS.RU', 'РџСЂР°РІРёС‚РµР»СЊСЃС‚РІРѕ РњРѕСЃРєРІС‹'],
-  ['MINTRANS.RU', 'РњРёРЅРёСЃС‚РµСЂСЃС‚РІРѕ С‚СЂР°РЅСЃРїРѕСЂС‚Р° Р РѕСЃСЃРёР№СЃРєРѕР№ Р¤РµРґРµСЂР°С†РёРё'],
-  ['DT.MOS.RU', 'Р”РµРїР°СЂС‚Р°РјРµРЅС‚ С‚СЂР°РЅСЃРїРѕСЂС‚Р° Рё СЂР°Р·РІРёС‚РёСЏ РґРѕСЂРѕР¶РЅРѕ-С‚СЂР°РЅСЃРїРѕСЂС‚РЅРѕР№ РёРЅС„СЂР°СЃС‚СЂСѓРєС‚СѓСЂС‹'],
-  ['MOSGORTRANS.RU', 'Р“РѕСЃСѓРґР°СЂСЃС‚РІРµРЅРЅРѕРµ СѓРЅРёС‚Р°СЂРЅРѕРµ РїСЂРµРґРїСЂРёСЏС‚РёРµ РњРѕСЃРіРѕСЂС‚СЂР°РЅСЃ'],
-  ['TRANSPORT.MOS.RU', 'РњРѕСЃРєРѕРІСЃРєРёР№ РўСЂР°РЅСЃРїРѕСЂС‚'],
+  ['MOS.RU', 'Правительство Москвы'],
+  ['MINTRANS.RU', 'Министерство транспорта Российской Федерации'],
+  ['DT.MOS.RU', 'Департамент транспорта и развития дорожно-транспортной инфраструктуры'],
+  ['MOSGORTRANS.RU', 'Государственное унитарное предприятие Мосгортранс'],
+  ['TRANSPORT.MOS.RU', 'Московский Транспорт'],
 ] as const;
 
 const accountButtons = [
-  { icon: accountYa, label: 'Р’РѕР№С‚Рё С‡РµСЂРµР· РЇРЅРґРµРєСЃ' },
-  { icon: accountVk, label: 'Р’РѕР№С‚Рё С‡РµСЂРµР· VK' },
-  { icon: accountMos, label: 'Р’РѕР№С‚Рё С‡РµСЂРµР· mos.ru' },
-  { icon: accountT, label: 'Р’РѕР№С‚Рё С‡РµСЂРµР· T-ID' },
-  { icon: accountApple, label: 'Р’РѕР№С‚Рё С‡РµСЂРµР· Apple' },
-  { icon: accountGoogle, label: 'Р’РѕР№С‚Рё С‡РµСЂРµР· Google' },
+  { icon: accountYa, label: 'Войти через Яндекс' },
+  { icon: accountVk, label: 'Войти через VK' },
+  { icon: accountMos, label: 'Войти через mos.ru' },
+  { icon: accountT, label: 'Войти через T-ID' },
+  { icon: accountApple, label: 'Войти через Apple' },
+  { icon: accountGoogle, label: 'Войти через Google' },
 ] as const;
 
 const serviceCards = [
-  { image: tariffsCard, title: 'РўР°СЂРёС„С‹ Рё РїСЂРѕРґСѓРєС‚С‹', className: 'service-card--tariffs' },
-  { image: terminalsCard, title: 'РўРµСЂРјРёРЅР°Р»С‹ Рё РєР°СЃСЃС‹', className: 'service-card--terminals' },
-  { image: feedbackCard, title: 'РћР±СЂР°С‚РЅР°СЏ СЃРІСЏР·СЊ', className: 'service-card--feedback' },
-  { image: null, title: 'РЎРµСЂРІРёСЃС‹', className: 'service-card--services' },
+  { image: tariffsCard, title: 'Тарифы и продукты', className: 'service-card--tariffs' },
+  { image: terminalsCard, title: 'Терминалы и кассы', className: 'service-card--terminals' },
+  { image: feedbackCard, title: 'Обратная связь', className: 'service-card--feedback' },
+  { image: null, title: 'Сервисы', className: 'service-card--services' },
 ] as const;
 
 const fastPaySlides = [
@@ -59,16 +59,16 @@ const fastPaySlides = [
     closeIcon: iconClose,
     image: fastPayTerminal,
     imageClassName: 'fast-pay-banner__terminal',
-    text: 'Рё РѕРїР»Р°С‡РёРІР°Р№С‚Рµ РїРѕРµР·РґРєРё РЅР° РіРѕСЂРѕРґСЃРєРѕРј С‚СЂР°РЅСЃРїРѕСЂС‚Рµ',
-    title: 'РџРѕРґРєР»СЋС‡Р°Р№С‚Рµ СЃРёСЃС‚РµРјСѓ Р±С‹СЃС‚СЂС‹С… РїР»Р°С‚РµР¶РµР№',
+    text: 'и оплачивайте поездки на городском транспорте',
+    title: 'Подключайте систему быстрых платежей',
     variant: 'sbp',
   },
   {
     closeIcon: iconCloseDark,
     image: fastPayTariffs,
     imageClassName: 'fast-pay-banner__tariffs-image',
-    text: 'Р’СЃРµ РґР»СЏ РІР°С€РёС… РїРѕРµР·РґРѕРє',
-    title: 'РўР°СЂРёС„С‹ Рё Р±РёР»РµС‚С‹',
+    text: 'Все для ваших поездок',
+    title: 'Тарифы и билеты',
     variant: 'tariffs',
   },
 ] as const;
@@ -229,10 +229,10 @@ const getErrorMessage = (error: unknown) => {
     return error.message;
   }
 
-  return 'РќРµ СѓРґР°Р»РѕСЃСЊ РІС‹РїРѕР»РЅРёС‚СЊ Р·Р°РїСЂРѕСЃ. РџРѕРїСЂРѕР±СѓР№С‚Рµ РµС‰Рµ СЂР°Р·.';
+  return 'Не удалось выполнить запрос. Попробуйте еще раз.';
 };
 
-const getRetryAfterMessage = (seconds: number) => `РќРѕРІС‹Р№ РєРѕРґ РјРѕР¶РЅРѕ Р·Р°РїСЂРѕСЃРёС‚СЊ С‡РµСЂРµР· ${formatTimer(seconds)}`;
+const getRetryAfterMessage = (seconds: number) => `Новый код можно запросить через ${formatTimer(seconds)}`;
 
 type AuthCodeInfo = {
   attemptCount?: number;
@@ -255,11 +255,11 @@ type PublicHeaderProps = {
 export const PublicHeader = ({ onLoginClick }: PublicHeaderProps) => (
   <header className="public-header">
     <div className="public-header__inner">
-      <Link to="/" className="public-logo" aria-label="РњРѕСЃРєРѕРІСЃРєРёР№ РјРµС‚СЂРѕРїРѕР»РёС‚РµРЅ">
-        <img src={metroLogo} alt="РњРѕСЃРєРѕРІСЃРєРёР№ РјРµС‚СЂРѕРїРѕР»РёС‚РµРЅ" />
+      <Link to="/" className="public-logo" aria-label="Московский метрополитен">
+        <img src={metroLogo} alt="Московский метрополитен" />
       </Link>
       <button className="public-header__login" onClick={onLoginClick} type="button">
-        Р’РѕР№С‚Рё
+        Войти
       </button>
     </div>
   </header>
@@ -453,7 +453,7 @@ export const LoginEntryCard = ({ focusRequest, onAuthenticated }: LoginEntryCard
     const response = await apiService.requestOtpCode(formatPhoneForAuthUsername(digits));
 
     if (!response.key) {
-      throw new Error('Backend РЅРµ РІРµСЂРЅСѓР» key РґР»СЏ РїРѕРґС‚РІРµСЂР¶РґРµРЅРёСЏ РєРѕРґР°.');
+      throw new Error('Backend не вернул key для подтверждения кода.');
     }
 
     return {
@@ -506,13 +506,13 @@ export const LoginEntryCard = ({ focusRequest, onAuthenticated }: LoginEntryCard
   return (
     <section className="login-panel" aria-labelledby="public-login-title">
       <form className="login-panel__form" onSubmit={handleSubmit}>
-        <h1 id="public-login-title">Р’РѕР№РґРёС‚Рµ РІ РїСЂРѕС„РёР»СЊ</h1>
+        <h1 id="public-login-title">Войдите в профиль</h1>
         <p className="login-panel__copy">
-          РџРѕР»СѓС‡РёС‚Рµ РґРѕСЃС‚СѓРї Рє СЃРІРѕРёРј С‚СЂР°РЅСЃРїРѕСЂС‚РЅС‹Рј РєР°СЂС‚Р°Рј, РїРѕРїРѕР»РЅРµРЅРёСЋ Р±Р°Р»Р°РЅСЃР°, СЃРµСЂРІРёСЃР°Рј Рё РґСЂСѓРіРёРј РІРѕР·РјРѕР¶РЅРѕСЃС‚СЏРј Р»РёС‡РЅРѕРіРѕ РєР°Р±РёРЅРµС‚Р°
+          Получите доступ к своим транспортным картам, пополнению баланса, сервисам и другим возможностям личного кабинета
         </p>
 
         <label className={`phone-field${showFormatError ? ' phone-field--error' : ''}`}>
-          <span className="sr-only">РќРѕРјРµСЂ С‚РµР»РµС„РѕРЅР°</span>
+          <span className="sr-only">Номер телефона</span>
           <span className="phone-field__prefix">+7</span>
           <input
             aria-describedby={showFormatError ? 'phone-format-error' : undefined}
@@ -531,13 +531,13 @@ export const LoginEntryCard = ({ focusRequest, onAuthenticated }: LoginEntryCard
 
         {showFormatError && (
           <p className="phone-field__error" id="phone-format-error">
-            РќРµРІРµСЂРЅС‹Р№ С„РѕСЂРјР°С‚ РЅРѕРјРµСЂР°
+            Неверный формат номера
           </p>
         )}
 
         <button className={`primary-action-button${isRequestingCode ? ' primary-action-button--loading' : ''}`} disabled={!isPhoneComplete || isRequestingCode} type="submit">
           {isRequestingCode && <span className="button-loader" aria-hidden="true" />}
-          <span>Р’РѕР№С‚Рё</span>
+          <span>Войти</span>
           {isRequestingCode && <span className="button-loader-placeholder" aria-hidden="true" />}
         </button>
       </form>
@@ -545,8 +545,8 @@ export const LoginEntryCard = ({ focusRequest, onAuthenticated }: LoginEntryCard
       {authError && <p className="login-panel__error">{authError}</p>}
 
       <div className="login-divider" />
-      <p className="login-panel__helper">РёР»Рё РІРѕР№РґРёС‚Рµ СЃ РїРѕРјРѕС‰СЊСЋ</p>
-      <div className="account-buttons" aria-label="РЎРїРѕСЃРѕР±С‹ РІС…РѕРґР°">
+      <p className="login-panel__helper">или войдите с помощью</p>
+      <div className="account-buttons" aria-label="Способы входа">
         {accountButtons.map((button) => (
           <button className="account-button" type="button" aria-label={button.label} key={button.label}>
             <img src={button.icon} alt="" aria-hidden="true" />
@@ -554,8 +554,8 @@ export const LoginEntryCard = ({ focusRequest, onAuthenticated }: LoginEntryCard
         ))}
       </div>
       <p className="login-policy">
-        РџСЂРѕРґРѕР»Р¶Р°СЏ, РІС‹ СЃРѕРіР»Р°С€Р°РµС‚РµСЃСЊ
-        <br />СЃ РїРѕР»РёС‚РёРєРѕР№ РѕР±СЂР°Р±РѕС‚РєРё РїРµСЂСЃРѕРЅР°Р»СЊРЅС‹С… РґР°РЅРЅС‹С…
+        Продолжая, вы соглашаетесь
+        <br />с политикой обработки персональных данных
       </p>
 
       {authSession && (
@@ -720,16 +720,16 @@ const AuthConfirmationModal = ({
     >
       <section className="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-code-title">
         <div className="auth-modal__pattern" aria-hidden="true" />
-        <button className="auth-modal__close" type="button" aria-label="Р—Р°РєСЂС‹С‚СЊ РѕРєРЅРѕ РїРѕРґС‚РІРµСЂР¶РґРµРЅРёСЏ" onClick={onClose}>
+        <button className="auth-modal__close" type="button" aria-label="Закрыть окно подтверждения" onClick={onClose}>
           <img src={iconCloseDark} alt="" aria-hidden="true" />
         </button>
 
         <div className="auth-modal__content">
-          <h2 id="auth-code-title">РљРѕРґ РїРѕРґС‚РІРµСЂР¶РґРµРЅРёСЏ</h2>
-          <p>РћС‚РїСЂР°РІРёР»Рё РєРѕРґ РїРѕРґС‚РІРµСЂР¶РґРµРЅРёСЏ РЅР° РЅРѕРјРµСЂ</p>
+          <h2 id="auth-code-title">Код подтверждения</h2>
+          <p>Отправили код подтверждения на номер</p>
           <strong>{phone}</strong>
 
-          <button className="auth-code-dots" type="button" onClick={() => inputRef.current?.focus()} aria-label="Р’РІРµСЃС‚Рё РєРѕРґ РїРѕРґС‚РІРµСЂР¶РґРµРЅРёСЏ">
+          <button className="auth-code-dots" type="button" onClick={() => inputRef.current?.focus()} aria-label="Ввести код подтверждения">
             {Array.from({ length: codeLength }, (_, index) => (
               <span className={index < code.length ? 'is-filled' : ''} key={index} />
             ))}
@@ -753,11 +753,11 @@ const AuthConfirmationModal = ({
           {modalError && <p className="auth-modal__error">{modalError}</p>}
 
           <button className="auth-modal__submit" disabled={!isCodeComplete || isConfirming} type="button" onClick={handleConfirm}>
-            {isConfirming ? 'РџСЂРѕРІРµСЂСЏРµРј' : 'РџРѕРґС‚РІРµСЂРґРёС‚СЊ'}
+            {isConfirming ? 'Проверяем' : 'Подтвердить'}
           </button>
 
           <button className="auth-modal__resend" disabled={countdown > 0 || isResending} type="button" onClick={handleResend}>
-            {countdown > 0 ? `РќРѕРІС‹Р№ РєРѕРґ (С‡РµСЂРµР· ${formatTimer(countdown)})` : 'РџРѕР»СѓС‡РёС‚СЊ РЅРѕРІС‹Р№ РєРѕРґ'}
+            {countdown > 0 ? `Новый код (через ${formatTimer(countdown)})` : 'Получить новый код'}
           </button>
         </div>
       </section>
@@ -781,7 +781,7 @@ const ServiceTile = ({ image, title, className }: ServiceCard) => (
 );
 
 export const ServicesGrid = () => (
-  <section className="services-grid" aria-label="РЎРµСЂРІРёСЃС‹">
+  <section className="services-grid" aria-label="Сервисы">
     {serviceCards.map((card) => (
       <ServiceTile key={card.title} {...card} />
     ))}
@@ -875,7 +875,7 @@ export const FastPayBanner = ({ onDismiss }: FastPayBannerProps) => {
       className={`fast-pay-banner fast-pay-banner--${activeVariant}${isClosing ? ' is-closing' : ''}${
         isResettingTrack ? ' is-resetting' : ''
       }`}
-      aria-label="РљР°СЂСѓСЃРµР»СЊ Р±Р°РЅРЅРµСЂРѕРІ"
+      aria-label="Карусель баннеров"
       onMouseEnter={() => setIsCarouselPaused(true)}
       onMouseLeave={() => setIsCarouselPaused(false)}
     >
@@ -893,18 +893,18 @@ export const FastPayBanner = ({ onDismiss }: FastPayBannerProps) => {
                 <h2>{slide.title}</h2>
                 <p>{slide.text}</p>
               </div>
-              <button className="fast-pay-banner__close" type="button" aria-label="РЎРєСЂС‹С‚СЊ Р±Р°РЅРЅРµСЂ" onClick={handleClose}>
+              <button className="fast-pay-banner__close" type="button" aria-label="Скрыть баннер" onClick={handleClose}>
                 <img src={slide.closeIcon} alt="" aria-hidden="true" />
               </button>
             </div>
           </article>
         ))}
       </div>
-      <div className="fast-pay-banner__dots" aria-label="Р’С‹Р±РѕСЂ Р±Р°РЅРЅРµСЂР°">
+      <div className="fast-pay-banner__dots" aria-label="Выбор баннера">
         {fastPayCarouselSlides.map((item, index) => (
           <button
             aria-current={activeSlide === index}
-            aria-label={`РџРѕРєР°Р·Р°С‚СЊ Р±Р°РЅРЅРµСЂ ${index + 1}: ${item.title}`}
+            aria-label={`Показать баннер ${index + 1}: ${item.title}`}
             className={activeSlide === index ? 'is-active' : ''}
             key={`${item.variant}-${index}`}
             onClick={() => handleSlideSelect(index)}
@@ -944,7 +944,7 @@ const getErrorStatusCode = (error: unknown) => {
   return readNumber(error.response, ['status']);
 };
 
-const getCardTitle = (card: CardSearchItem) => card.cmsTitle || card.cmsName || card.typeName || 'РўСЂР°РЅСЃРїРѕСЂС‚РЅР°СЏ РєР°СЂС‚Р°';
+const getCardTitle = (card: CardSearchItem) => card.cmsTitle || card.cmsName || card.typeName || 'Транспортная карта';
 
 const getTicketProductId = (product: { productId?: string; id?: string; name?: string }, index: number) =>
   product.productId || product.id || `${product.name || 'ticket'}-${index}`;
@@ -956,7 +956,7 @@ const normalizeTicketCatalogProducts = (response: TicketProductsResponse, card: 
       (section.products ?? []).map((product, index) => ({
         category: category.title,
         id: getTicketProductId(product, index),
-        name: product.name || section.title || category.title || 'Р‘РёР»РµС‚',
+        name: product.name || section.title || category.title || 'Билет',
         paymentTypes: product.paymentTypes ?? undefined,
         price: product.price,
         section: section.title,
@@ -982,14 +982,14 @@ const isVirtualTroikaType = (cardType?: string) => {
   }
 
   const value = cardType.toLowerCase();
-  return value.includes('virtual') || value.includes('РІРёСЂС‚Сѓ') || value.includes('vtroika') || value === 'vt';
+  return value.includes('virtual') || value.includes('вирту') || value.includes('vtroika') || value === 'vt';
 };
 
 const isTroikaSearchCard = (card: CardSearchItem) => {
   const value = getCardSearchText(card);
-  const isSocial = value.includes('social') || value.includes('СЃРѕС†РёР°Р»');
+  const isSocial = value.includes('social') || value.includes('социал');
 
-  return !isSocial && (value.includes('troika') || value.includes('С‚СЂРѕР№Рє'));
+  return !isSocial && (value.includes('troika') || value.includes('тройк'));
 };
 
 const selectSupportedSearchCard = (cards: CardSearchItem[] | undefined) => cards?.find(isTroikaSearchCard);
@@ -1043,7 +1043,7 @@ const formatBankCardMask = (value?: string) => {
   const digits = value?.replace(/\D/g, '') ?? '';
 
   if (!digits) {
-    return '•••• ••••';
+    return 'Без карты';
   }
 
   return `•••• ${digits.slice(-4).padStart(4, '0')}`;
@@ -1240,7 +1240,7 @@ type TopUpReceiptFieldProps = {
 
 const TopUpReceiptField = ({ value, onChange }: TopUpReceiptFieldProps) => (
   <label className="field">
-    <span>РќР°РїСЂР°РІРёС‚СЊ С‡РµРє</span>
+    <span>Направить чек</span>
     <span className="top-up-input-shell">
       <input
         className="top-up-input"
@@ -1401,9 +1401,9 @@ export const TopUpBalanceCard = () => {
 
   return (
     <section className="top-up-panel" aria-labelledby="top-up-title">
-      <h2 id="top-up-title">РџРѕРїРѕР»РЅРёС‚СЊ Р±Р°Р»Р°РЅСЃ</h2>
+      <h2 id="top-up-title">Пополнить баланс</h2>
 
-      <div className={`top-up-tabs top-up-tabs--${activeTab}`} role="tablist" aria-label="РўРёРї РїРѕРїРѕР»РЅРµРЅРёСЏ">
+      <div className={`top-up-tabs top-up-tabs--${activeTab}`} role="tablist" aria-label="Тип пополнения">
         <button
           aria-selected={activeTab === 'wallet'}
           className={`top-up-tabs__tab${activeTab === 'wallet' ? ' top-up-tabs__tab--active' : ''}`}
@@ -1411,7 +1411,7 @@ export const TopUpBalanceCard = () => {
           role="tab"
           type="button"
         >
-          РљРѕС€РµР»РµРє
+          Кошелек
         </button>
         <button
           aria-selected={activeTab === 'tickets'}
@@ -1420,13 +1420,13 @@ export const TopUpBalanceCard = () => {
           role="tab"
           type="button"
         >
-          Р‘РёР»РµС‚С‹
+          Билеты
         </button>
       </div>
 
       <form className="top-up-form">
         <label className="field top-up-card-field">
-          <span>РќРѕРјРµСЂ С‚СЂР°РЅСЃРїРѕСЂС‚РЅРѕР№ РєР°СЂС‚С‹</span>
+          <span>Номер транспортной карты</span>
           <span className={`top-up-card-input-shell${cardStateClass}`}>
             <img className="transport-card-icon" src={transportCardIcon} alt="" aria-hidden="true" />
             <input
@@ -1439,22 +1439,22 @@ export const TopUpBalanceCard = () => {
               type="text"
               value={formattedCardNumber}
             />
-            {lookupStatus === 'loading' && <span className="top-up-mini-loader" aria-label="РС‰РµРј РєР°СЂС‚Сѓ" />}
+            {lookupStatus === 'loading' && <span className="top-up-mini-loader" aria-label="Ищем карту" />}
             {(lookupStatus === 'found' || lookupStatus === 'not-found' || lookupStatus === 'error') && (
               <span className="top-up-card-status-icon" aria-hidden="true">
-                {lookupStatus === 'found' ? 'вњ“' : '!'}
+                {lookupStatus === 'found' ? '✓' : '!'}
               </span>
             )}
           </span>
-          {lookupStatus === 'found' && <span className="top-up-card-message top-up-card-message--success">РќРѕРјРµСЂ РєР°СЂС‚С‹ СѓСЃРїРµС€РЅРѕ РЅР°Р№РґРµРЅ</span>}
-          {lookupStatus === 'not-found' && <span className="top-up-card-message top-up-card-message--error">РќРѕРјРµСЂ РєР°СЂС‚С‹ РЅРµ РЅР°Р№РґРµРЅ</span>}
-          {lookupStatus === 'error' && <span className="top-up-card-message top-up-card-message--error">РќРµ СѓРґР°Р»РѕСЃСЊ РїСЂРѕРІРµСЂРёС‚СЊ РєР°СЂС‚Сѓ</span>}
+          {lookupStatus === 'found' && <span className="top-up-card-message top-up-card-message--success">Номер карты успешно найден</span>}
+          {lookupStatus === 'not-found' && <span className="top-up-card-message top-up-card-message--error">Номер карты не найден</span>}
+          {lookupStatus === 'error' && <span className="top-up-card-message top-up-card-message--error">Не удалось проверить карту</span>}
         </label>
 
         {activeTab === 'wallet' ? (
           <>
             <label className="field">
-              <span>РЎСѓРјРјР° РїРѕРїРѕР»РЅРµРЅРёСЏ</span>
+              <span>Сумма пополнения</span>
               <span className="top-up-input-shell">
                 <input
                   className="top-up-input top-up-input--amount"
@@ -1465,7 +1465,7 @@ export const TopUpBalanceCard = () => {
                   type="text"
                   value={amount}
                 />
-                <span className="rub">в‚Ѕ</span>
+                <span className="rub">₽</span>
               </span>
             </label>
             <TopUpPaymentField
@@ -1487,16 +1487,16 @@ export const TopUpBalanceCard = () => {
             />
             <TopUpReceiptField value={receiptEmail} onChange={setReceiptEmail} />
             <button className="primary-disabled-button top-up-submit" disabled type="button">
-              РџРѕРїРѕР»РЅРёС‚СЊ
+              Пополнить
             </button>
           </>
         ) : (
           <>
             <label className="field">
-              <span>Р’РёРґ Р±РёР»РµС‚Р°</span>
+              <span>Вид билета</span>
               <button className="top-up-action-card top-up-action-card--select" disabled={!selectedTicket} type="button">
                 <span className="field-icon field-icon--ticket" aria-hidden="true" />
-                <span>{selectedTicket ? selectedTicket.name : 'Р’С‹Р±РµСЂРёС‚Рµ С‚РёРї Р±РёР»РµС‚Р°'}</span>
+                <span>{selectedTicket ? selectedTicket.name : 'Выберите тип билета'}</span>
                 <span className="chevron" aria-hidden="true" />
               </button>
             </label>
@@ -1507,13 +1507,13 @@ export const TopUpBalanceCard = () => {
                     <button className="top-up-ticket-option" key={ticket.id} type="button">
                       <span>
                         <strong>{ticket.name}</strong>
-                        {(ticket.category || ticket.section) && <small>{[ticket.category, ticket.section].filter(Boolean).join(' вЂў ')}</small>}
+                        {(ticket.category || ticket.section) && <small>{[ticket.category, ticket.section].filter(Boolean).join(' • ')}</small>}
                       </span>
-                      {typeof ticket.price === 'number' && <b>{formatMoney(ticket.price)} в‚Ѕ</b>}
+                      {typeof ticket.price === 'number' && <b>{formatMoney(ticket.price)} ₽</b>}
                     </button>
                   ))
                 ) : (
-                  <p className="top-up-ticket-empty">Р”Р»СЏ СЌС‚РѕР№ РєР°СЂС‚С‹ Р±РёР»РµС‚С‹ РЅРµРґРѕСЃС‚СѓРїРЅС‹</p>
+                  <p className="top-up-ticket-empty">Для этой карты билеты недоступны</p>
                 )}
               </div>
             )}
@@ -1536,7 +1536,7 @@ export const TopUpBalanceCard = () => {
             />
             <TopUpReceiptField value={receiptEmail} onChange={setReceiptEmail} />
             <button className="primary-disabled-button top-up-submit" disabled type="button">
-              РљСѓРїРёС‚СЊ Р±РёР»РµС‚
+              Купить билет
             </button>
           </>
         )}
@@ -1550,21 +1550,21 @@ export const PublicFooter = () => (
     <div className="public-footer__inner">
       <div className="public-footer__legal">
         <p className="copyright">
-          Р“РЈРџ В«РњРѕСЃРєРѕРІСЃРєРёР№ РјРµС‚СЂРѕРїРѕР»РёС‚РµРЅВ»
+          ГУП «Московский метрополитен»
           <br />
-          1935 - 2025 В©
+          1935 - 2025 ©
         </p>
-        <p className="legal-title">РџСЂР°РІРѕРІР°СЏ РёРЅС„РѕСЂРјР°С†РёСЏ</p>
+        <p className="legal-title">Правовая информация</p>
         <p>
-          РџРѕСЃРµС‰Р°СЏ СЃР°Р№С‚ <a href="https://www.mosmetro.ru">www.mosmetro.ru</a> Р’С‹ РґР°РµС‚Рµ СЃРѕРіР»Р°СЃРёРµ РЅР° РѕР±СЂР°Р±РѕС‚РєСѓ С„Р°Р№Р»РѕРІ cookie, СЃР±РѕСЂ РєРѕС‚РѕСЂС‹С…
-          РѕСЃСѓС‰РµСЃС‚РІР»СЏРµС‚СЃСЏ Р“РЈРџ В«РњРѕСЃРєРѕРІСЃРєРёР№ РјРµС‚СЂРѕРїРѕР»РёС‚РµРЅВ» РЅР° СѓСЃР»РѕРІРёСЏС…{' '}
-          <a href="https://www.mosmetro.ru">РџРѕР»РёС‚РёРєРё РѕР±СЂР°Р±РѕС‚РєРё С„Р°Р№Р»РѕРІ cookie</a>. РњРµС‚СЂРѕРїРѕР»РёС‚РµРЅ С‚Р°РєР¶Рµ РјРѕР¶РµС‚ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ СѓРєР°Р·Р°РЅРЅС‹Рµ РґР°РЅРЅС‹Рµ РґР»СЏ РёС…
-          РїРѕСЃР»РµРґСѓСЋС‰РµР№ РѕР±СЂР°Р±РѕС‚РєРё СЃРёСЃС‚РµРјР°РјРё РЇРЅРґРµРєСЃ.РњРµС‚СЂРёРєР° Рё РґСЂ., РєРѕС‚РѕСЂР°СЏ РѕСЃСѓС‰РµСЃС‚РІР»СЏРµС‚СЃСЏ СЃ С†РµР»СЊСЋ С„СѓРЅРєС†РёРѕРЅРёСЂРѕРІР°РЅРёСЏ СЃР°Р№С‚Р°{' '}
+          Посещая сайт <a href="https://www.mosmetro.ru">www.mosmetro.ru</a> Вы даете согласие на обработку файлов cookie, сбор которых
+          осуществляется ГУП «Московский метрополитен» на условиях{' '}
+          <a href="https://www.mosmetro.ru">Политики обработки файлов cookie</a>. Метрополитен также может использовать указанные данные для их
+          последующей обработки системами Яндекс.Метрика и др., которая осуществляется с целью функционирования сайта{' '}
           <a href="https://www.mosmetro.ru">www.mosmetro.ru</a>.
         </p>
       </div>
 
-      <nav className="public-footer__links" aria-label="РЎСЃС‹Р»РєРё РѕСЂРіР°РЅРёР·Р°С†РёР№">
+      <nav className="public-footer__links" aria-label="Ссылки организаций">
         {footerLinks.map(([title, text]) => (
           <a href="https://www.mosmetro.ru" key={title}>
             <strong>{title}</strong>
@@ -1576,4 +1576,5 @@ export const PublicFooter = () => (
     </div>
   </footer>
 );
+
 
