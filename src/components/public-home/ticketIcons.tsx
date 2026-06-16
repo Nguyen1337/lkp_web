@@ -1,47 +1,22 @@
-import ticketCategoryBadge from '../../assets/ui-kit/ticket-category-badge.svg';
-import ticketCategoryBus from '../../assets/ui-kit/ticket-category-bus.svg';
-import ticketCategoryLabel from '../../assets/ui-kit/ticket-category-label.svg';
-import ticketCategoryRiver from '../../assets/ui-kit/ticket-category-river.svg';
-import ticketCategoryShape from '../../assets/ui-kit/ticket-category-shape.svg';
-import ticketCategoryTatBus from '../../assets/ui-kit/ticket-category-tat-bus.svg';
-import ticketCategoryTatElectric from '../../assets/ui-kit/ticket-category-tat-electric.svg';
-import ticketCategoryTatTram from '../../assets/ui-kit/ticket-category-tat-tram.svg';
-import ticketCategoryTrainMark from '../../assets/ui-kit/ticket-category-train-mark.svg';
-import ticketCategoryTrolleybus from '../../assets/ui-kit/ticket-category-trolleybus.svg';
-import ticketCategoryTram from '../../assets/ui-kit/ticket-category-tram.svg';
+import ticketCategoryMetroSet from '../../assets/ui-kit/ticket-category-metro-set.svg';
+import ticketCategoryTatSet from '../../assets/ui-kit/ticket-category-tat-set.svg';
+import ticketCategoryUnifiedSet from '../../assets/ui-kit/ticket-category-unified-set.svg';
 import ticketRowTat from '../../assets/ui-kit/ticket-row-tat.svg';
 import ticketRowTrain from '../../assets/ui-kit/ticket-row-train.svg';
 import ticketRowUnified from '../../assets/ui-kit/ticket-row-unified.svg';
 
 export type TicketCategoryType = 'UNIFIED' | 'TRAIN' | 'TAT';
 
-type IconSet = {
-  categoryIcons: string[];
-  rowIcon: string;
+const CATEGORY_BUNDLE_ICONS: Record<TicketCategoryType, string> = {
+  UNIFIED: ticketCategoryUnifiedSet,
+  TRAIN: ticketCategoryMetroSet,
+  TAT: ticketCategoryTatSet,
 };
 
-const TICKET_ICON_SETS: Record<TicketCategoryType, IconSet> = {
-  UNIFIED: {
-    categoryIcons: [
-      ticketCategoryShape,
-      ticketCategoryLabel,
-      ticketCategoryBus,
-      ticketCategoryTrainMark,
-      ticketCategoryTrolleybus,
-      ticketCategoryTram,
-      ticketCategoryRiver,
-      ticketCategoryBadge,
-    ],
-    rowIcon: ticketRowUnified,
-  },
-  TRAIN: {
-    categoryIcons: [ticketCategoryShape, ticketCategoryLabel, ticketCategoryTrainMark],
-    rowIcon: ticketRowTrain,
-  },
-  TAT: {
-    categoryIcons: [ticketCategoryTatBus, ticketCategoryTatElectric, ticketCategoryTatTram],
-    rowIcon: ticketRowTat,
-  },
+const ROW_ICONS: Record<TicketCategoryType, string> = {
+  UNIFIED: ticketRowUnified,
+  TRAIN: ticketRowTrain,
+  TAT: ticketRowTat,
 };
 
 const normalizeTicketCategoryType = (value?: string): TicketCategoryType => {
@@ -54,9 +29,9 @@ const normalizeTicketCategoryType = (value?: string): TicketCategoryType => {
   return 'UNIFIED';
 };
 
-const getTicketCategoryRowIcon = (type?: string) => TICKET_ICON_SETS[normalizeTicketCategoryType(type)].rowIcon;
+const getTicketCategoryRowIcon = (type?: string) => ROW_ICONS[normalizeTicketCategoryType(type)];
 
-const getTicketCategoryBundleIcons = (type?: string) => TICKET_ICON_SETS[normalizeTicketCategoryType(type)].categoryIcons;
+const getTicketCategoryBundleIcon = (type?: string) => CATEGORY_BUNDLE_ICONS[normalizeTicketCategoryType(type)];
 
 type TicketRowIconProps = {
   alt?: string;
@@ -73,15 +48,6 @@ type TicketCategoryBundleIconProps = {
   type?: string;
 };
 
-export const TicketCategoryBundleIcon = ({ className, type }: TicketCategoryBundleIconProps) => {
-  const icons = getTicketCategoryBundleIcons(type);
-  const normalizedType = normalizeTicketCategoryType(type).toLowerCase();
-
-  return (
-    <div className={`ticket-category-bundle ticket-category-bundle--${normalizedType} ${className ?? ''}`.trim()} aria-hidden="true">
-      {icons.map((icon, index) => (
-        <img alt="" className="ticket-category-bundle__icon" key={`${icon}-${index}`} src={icon} />
-      ))}
-    </div>
-  );
-};
+export const TicketCategoryBundleIcon = ({ className, type }: TicketCategoryBundleIconProps) => (
+  <img alt="" aria-hidden="true" className={`ticket-category-bundle ${className ?? ''}`.trim()} src={getTicketCategoryBundleIcon(type)} />
+);

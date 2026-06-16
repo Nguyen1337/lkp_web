@@ -1213,32 +1213,19 @@
 
 .ticket-category-bundle {
   flex: 0 0 auto;
-  display: grid;
-  align-content: center;
-  justify-content: start;
-  gap: 2px 3px;
-}
-
-.ticket-category-bundle--unified {
-  width: 72px;
-  grid-template-columns: repeat(4, max-content);
-}
-
-.ticket-category-bundle--train {
-  width: 50px;
-  grid-template-columns: repeat(3, max-content);
-}
-
-.ticket-category-bundle--tat {
-  width: 54px;
-  grid-template-columns: repeat(3, max-content);
-}
-
-.ticket-category-bundle__icon {
+  width: 28px;
+  height: 28px;
   display: block;
-  width: auto;
-  height: 20px;
   object-fit: contain;
+}
+
+.top-up-ticket-option__icon {
+  width: 24px;
+  height: 16px;
+  flex: 0 0 auto;
+  display: block;
+  object-fit: contain;
+  margin-top: 1px;
 }
 
 .top-up-ticket-category__title {
@@ -1299,15 +1286,6 @@
   gap: 6px;
   flex: 1 1 auto;
   padding-top: 2px;
-}
-
-.top-up-ticket-option__icon {
-  width: 20px;
-  height: 20px;
-  flex: 0 0 auto;
-  display: block;
-  object-fit: contain;
-  margin-top: 2px;
 }
 
 .top-up-ticket-option__title-row {

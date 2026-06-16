@@ -37,6 +37,7 @@ export type TicketCatalogCategory = {
 type TicketCatalogProps = {
   categories: TicketCatalogCategory[];
   isCardEntered: boolean;
+  isLoading?: boolean;
   selectedTicketId: string | null;
   onSelectTicket: (ticketId: string) => void;
 };
@@ -46,9 +47,19 @@ const formatMoney = (value: number) =>
     maximumFractionDigits: 0,
   }).format(value);
 
-const normalizeCategoryType = (value?: string) => value?.trim().toUpperCase() ?? 'UNIFIED';
+const getOptionDelta = (ticketPrice: number | undefined, option: TicketCatalogOption) => {
+  if (typeof option.priceDelta === 'number') {
+    return Math.abs(option.priceDelta);
+  }
 
-export const TicketCatalog = ({ categories, isCardEntered, selectedTicketId, onSelectTicket }: TicketCatalogProps) => {
+  if (typeof option.price === 'number' && typeof ticketPrice === 'number') {
+    return Math.abs(option.price - ticketPrice);
+  }
+
+  return 0;
+};
+
+export const TicketCatalog = ({ categories, isCardEntered, isLoading = false, selectedTicketId, onSelectTicket }: TicketCatalogProps) => {
   const [enabledOptionIds, setEnabledOptionIds] = useState<Record<string, string[]>>({});
 
   const selectedTicket = useMemo(() => {
@@ -77,6 +88,10 @@ export const TicketCatalog = ({ categories, isCardEntered, selectedTicketId, onS
     return <p className="top-up-ticket-empty">Введите номер транспортной карты, чтобы увидеть билеты</p>;
   }
 
+  if (isLoading) {
+    return <p className="top-up-ticket-empty">Загружаем доступные билеты...</p>;
+  }
+
   if (!categories.length) {
     return <p className="top-up-ticket-empty">Для этой карты билеты недоступны</p>;
   }
@@ -88,12 +103,10 @@ export const TicketCatalog = ({ categories, isCardEntered, selectedTicketId, onS
           return null;
         }
 
-        const categoryType = normalizeCategoryType(category.iconType);
-
         return (
           <section className="top-up-ticket-category" key={category.id}>
             <div className="top-up-ticket-category__header">
-              <TicketCategoryBundleIcon className="top-up-ticket-category__bundle" type={categoryType} />
+              <TicketCategoryBundleIcon className="top-up-ticket-category__bundle" type={category.iconType} />
               <div className="top-up-ticket-category__title">
                 <strong>{category.title}</strong>
                 {category.subtitle && <span>{category.subtitle}</span>}
@@ -104,6 +117,11 @@ export const TicketCatalog = ({ categories, isCardEntered, selectedTicketId, onS
               {category.tickets.map((ticket) => {
                 const isSelected = ticket.id === selectedTicket?.id;
                 const ticketIconType = ticket.iconType ?? category.iconType;
+                const enabledOptionIdsForTicket = enabledOptionIds[ticket.id] ?? [];
+                const selectedOptions =
+                  ticket.options?.filter((option) => enabledOptionIdsForTicket.includes(option.id) || Boolean(option.isDefault)) ?? [];
+                const selectedOptionsDelta = selectedOptions.reduce((sum, option) => sum + getOptionDelta(ticket.price, option), 0);
+                const ticketTotalPrice = typeof ticket.price === 'number' ? ticket.price + selectedOptionsDelta : undefined;
 
                 return (
                   <div className="top-up-ticket-item" key={ticket.id}>
@@ -117,7 +135,7 @@ export const TicketCatalog = ({ categories, isCardEntered, selectedTicketId, onS
                       <span className="top-up-ticket-option__content">
                         <span className="top-up-ticket-option__title-row">
                           <strong>{ticket.name}</strong>
-                          {typeof ticket.price === 'number' && <b>{formatMoney(ticket.price)} ₽</b>}
+                          {typeof ticketTotalPrice === 'number' && <b>{formatMoney(ticketTotalPrice)} ₽</b>}
                         </span>
 
                         {ticket.descr && <small>{ticket.descr}</small>}
@@ -136,13 +154,9 @@ export const TicketCatalog = ({ categories, isCardEntered, selectedTicketId, onS
                     {isSelected && ticket.options?.length ? (
                       <div className="top-up-ticket-option-list">
                         {ticket.options.map((option) => {
-                          const enabled = enabledOptionIds[ticket.id]?.includes(option.id) ?? Boolean(option.isDefault);
-                          const deltaLabel =
-                            typeof option.priceDelta === 'number'
-                              ? `${option.priceDelta >= 0 ? '+' : ''}${formatMoney(option.priceDelta)} ₽`
-                              : typeof option.price === 'number' && typeof ticket.price === 'number'
-                                ? `${option.price >= ticket.price ? '+' : ''}${formatMoney(option.price - ticket.price)} ₽`
-                                : null;
+                          const enabled = enabledOptionIdsForTicket.includes(option.id) || Boolean(option.isDefault);
+                          const deltaValue = getOptionDelta(ticket.price, option);
+                          const deltaLabel = deltaValue > 0 ? `+${formatMoney(deltaValue)} ₽` : null;
 
                           return (
                             <button

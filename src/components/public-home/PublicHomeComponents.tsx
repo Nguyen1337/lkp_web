@@ -995,7 +995,7 @@ const normalizeTicketCatalogProducts = (response: TicketProductsResponse, card: 
           category: category.title,
           descr: product.descr ?? undefined,
           id: productId,
-          iconType: category.iconType,
+          iconType: category.productIconType ?? category.iconType,
           isFreezable: readBoolean(product, ['isFreezable']) ?? product.isFreezable ?? undefined,
           isRecommended: readBoolean(product, ['isRecommended']) ?? product.isRecommended ?? undefined,
           name: product.name || section.title || category.title || 'Билет',
@@ -1348,6 +1348,7 @@ export const TopUpBalanceCard = () => {
     return allTickets[0].id;
   }, [allTickets, selectedTicketId]);
   const selectedTicket = allTickets.find((ticket) => ticket.id === selectedTicketIdForView) ?? allTickets[0];
+  const isTicketCatalogLoading = lookupStatus === 'loading';
   const transportCardIcon = getTopUpTransportCardIcon(lookupStatus, cardProducts?.cardType);
   const currentPaymentTypes = useMemo(
     () => (activeTab === 'wallet' ? cardProducts?.wallet?.paymentTypes ?? [] : selectedTicket?.paymentTypes ?? []),
@@ -1577,6 +1578,7 @@ export const TopUpBalanceCard = () => {
               <TicketCatalog
                 categories={cardProducts?.categories ?? []}
                 isCardEntered={cardDigits.length > 0}
+                isLoading={isTicketCatalogLoading}
                 onSelectTicket={setSelectedTicketId}
                 selectedTicketId={selectedTicket?.id ?? null}
               />
