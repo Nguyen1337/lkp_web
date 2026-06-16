@@ -25,9 +25,6 @@ import terminalsCard from '../../assets/public-home/terminals-figma.png';
 import transportCardPlaceholder from '../../assets/public-home/transport-card-placeholder.svg';
 import transportCardTroika from '../../assets/public-home/transport-card-troika.svg';
 import transportCardVirtualTroika from '../../assets/public-home/transport-card-virtual-troika.svg';
-import ticketCategoryTat from '../../assets/ui-kit/ticketCategoryTat.png';
-import ticketCategoryTrain from '../../assets/ui-kit/ticketCategoryTrain.png';
-import ticketCategoryUnified from '../../assets/ui-kit/ticketCategoryUnified.png';
 import { PaymentMethodIcon, type PaymentMethodType } from '../ui-kit/PaymentMethodIcon';
 import { PaymentSystemBadge, type PaymentSystemType } from '../ui-kit/TransitBadges';
 import { TicketCatalog, type TicketCatalogCategory, type TicketCatalogTicket } from './TicketCatalog';
@@ -998,6 +995,7 @@ const normalizeTicketCatalogProducts = (response: TicketProductsResponse, card: 
           category: category.title,
           descr: product.descr ?? undefined,
           id: productId,
+          iconType: category.iconType,
           isFreezable: readBoolean(product, ['isFreezable']) ?? product.isFreezable ?? undefined,
           isRecommended: readBoolean(product, ['isRecommended']) ?? product.isRecommended ?? undefined,
           name: product.name || section.title || category.title || 'Билет',
@@ -1023,7 +1021,6 @@ const normalizeTicketCatalogProducts = (response: TicketProductsResponse, card: 
 
     return {
       id: `${category.iconType || category.title || 'category'}-${categoryIndex}`,
-      iconSrc: getTicketCategoryIcon(category.iconType),
       iconType: category.iconType,
       subtitle: category.subtitle,
       tickets,
@@ -1071,16 +1068,6 @@ const getTopUpTransportCardIcon = (status: TopUpLookupStatus, cardType?: string)
 
   return isVirtualTroikaType(cardType) ? transportCardVirtualTroika : transportCardTroika;
 };
-
-const TICKET_CATEGORY_ICON_BY_TYPE: Record<string, string> = {
-  TAT: ticketCategoryTat,
-  TRAIN: ticketCategoryTrain,
-  UNIFIED: ticketCategoryUnified,
-};
-
-const normalizeTicketCategoryType = (value?: string) => value?.trim().toUpperCase() ?? '';
-
-const getTicketCategoryIcon = (type?: string) => TICKET_CATEGORY_ICON_BY_TYPE[normalizeTicketCategoryType(type)] ?? ticketCategoryUnified;
 
 const PAYMENT_TYPE_LABELS: Record<string, string> = {
   bankCard: 'Банковская карта',

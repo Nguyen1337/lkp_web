@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { TicketCategoryBundleIcon, TicketRowIcon } from './ticketIcons';
 
 export type TicketCatalogOption = {
   id: string;
@@ -14,6 +15,7 @@ export type TicketCatalogOption = {
 export type TicketCatalogTicket = {
   id: string;
   category?: string;
+  iconType?: string;
   isFreezable?: boolean;
   isRecommended?: boolean;
   descr?: string | null;
@@ -26,7 +28,6 @@ export type TicketCatalogTicket = {
 
 export type TicketCatalogCategory = {
   id: string;
-  iconSrc: string;
   iconType?: string;
   subtitle?: string | null;
   tickets: TicketCatalogTicket[];
@@ -45,7 +46,7 @@ const formatMoney = (value: number) =>
     maximumFractionDigits: 0,
   }).format(value);
 
-const normalizeCategoryType = (value?: string) => value?.trim().toUpperCase() ?? '';
+const normalizeCategoryType = (value?: string) => value?.trim().toUpperCase() ?? 'UNIFIED';
 
 export const TicketCatalog = ({ categories, isCardEntered, selectedTicketId, onSelectTicket }: TicketCatalogProps) => {
   const [enabledOptionIds, setEnabledOptionIds] = useState<Record<string, string[]>>({});
@@ -87,18 +88,12 @@ export const TicketCatalog = ({ categories, isCardEntered, selectedTicketId, onS
           return null;
         }
 
-        const iconKind = normalizeCategoryType(category.iconType);
-        const iconClassName =
-          iconKind === 'TAT'
-            ? 'top-up-ticket-category__icon top-up-ticket-category__icon--tat'
-            : iconKind === 'TRAIN'
-              ? 'top-up-ticket-category__icon top-up-ticket-category__icon--train'
-              : 'top-up-ticket-category__icon top-up-ticket-category__icon--unified';
+        const categoryType = normalizeCategoryType(category.iconType);
 
         return (
           <section className="top-up-ticket-category" key={category.id}>
             <div className="top-up-ticket-category__header">
-              <img alt="" aria-hidden="true" className={iconClassName} src={category.iconSrc} />
+              <TicketCategoryBundleIcon className="top-up-ticket-category__bundle" type={categoryType} />
               <div className="top-up-ticket-category__title">
                 <strong>{category.title}</strong>
                 {category.subtitle && <span>{category.subtitle}</span>}
@@ -108,6 +103,7 @@ export const TicketCatalog = ({ categories, isCardEntered, selectedTicketId, onS
             <div className="top-up-ticket-category__tickets">
               {category.tickets.map((ticket) => {
                 const isSelected = ticket.id === selectedTicket?.id;
+                const ticketIconType = ticket.iconType ?? category.iconType;
 
                 return (
                   <div className="top-up-ticket-item" key={ticket.id}>
@@ -117,6 +113,7 @@ export const TicketCatalog = ({ categories, isCardEntered, selectedTicketId, onS
                       onClick={() => onSelectTicket(ticket.id)}
                       type="button"
                     >
+                      <TicketRowIcon className="top-up-ticket-option__icon" type={ticketIconType} />
                       <span className="top-up-ticket-option__content">
                         <span className="top-up-ticket-option__title-row">
                           <strong>{ticket.name}</strong>
