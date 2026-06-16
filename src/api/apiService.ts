@@ -78,6 +78,13 @@ export type TicketProduct = {
   pricePerDay?: number | null;
   paymentTypes?: string[];
   typeName?: string;
+  options?: TicketProductOption[];
+  isFreezable?: boolean;
+  isRecommended?: boolean;
+  optionName?: string;
+  optionDescr?: string;
+  deltaPrice?: number;
+  priceDelta?: number;
 };
 
 export type TicketProductSection = {
@@ -85,6 +92,18 @@ export type TicketProductSection = {
   title?: string;
   subtitle?: string | null;
   products?: TicketProduct[];
+};
+
+export type TicketProductOption = {
+  id?: string;
+  name?: string;
+  descr?: string;
+  price?: number;
+  priceDelta?: number;
+  deltaPrice?: number;
+  isDefault?: boolean;
+  isRecommended?: boolean;
+  isFreezable?: boolean;
 };
 
 export type BankCardItem = {

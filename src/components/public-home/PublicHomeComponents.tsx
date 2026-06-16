@@ -2,7 +2,7 @@
 import type { ChangeEvent, FormEvent, KeyboardEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { apiService } from '../../api/apiService';
-import type { CardSearchItem, OtpStartResponse, TicketProductsResponse, WalletProduct } from '../../api/apiService';
+import type { CardSearchItem, OtpStartResponse, TicketProductOption, TicketProductsResponse, WalletProduct } from '../../api/apiService';
 import accountApple from '../../assets/public-home/account-apple-figma.png';
 import accountGoogle from '../../assets/public-home/account-google-figma.svg';
 import accountMos from '../../assets/public-home/account-mos-figma.svg';
@@ -25,8 +25,12 @@ import terminalsCard from '../../assets/public-home/terminals-figma.png';
 import transportCardPlaceholder from '../../assets/public-home/transport-card-placeholder.svg';
 import transportCardTroika from '../../assets/public-home/transport-card-troika.svg';
 import transportCardVirtualTroika from '../../assets/public-home/transport-card-virtual-troika.svg';
+import ticketCategoryTat from '../../assets/ui-kit/ticketCategoryTat.png';
+import ticketCategoryTrain from '../../assets/ui-kit/ticketCategoryTrain.png';
+import ticketCategoryUnified from '../../assets/ui-kit/ticketCategoryUnified.png';
 import { PaymentMethodIcon, type PaymentMethodType } from '../ui-kit/PaymentMethodIcon';
 import { PaymentSystemBadge, type PaymentSystemType } from '../ui-kit/TransitBadges';
+import { TicketCatalog, type TicketCatalogCategory, type TicketCatalogTicket } from './TicketCatalog';
 
 const PHONE_DIGITS_LENGTH = 10;
 
@@ -181,6 +185,32 @@ const readString = (value: unknown, keys: string[]) => {
 
     if (typeof nextValue === 'string' && nextValue.trim()) {
       return nextValue.trim();
+    }
+  }
+
+  return undefined;
+};
+
+const readBoolean = (value: unknown, keys: string[]) => {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  for (const key of keys) {
+    const nextValue = value[key];
+
+    if (typeof nextValue === 'boolean') {
+      return nextValue;
+    }
+
+    if (typeof nextValue === 'string') {
+      if (nextValue === 'true') {
+        return true;
+      }
+
+      if (nextValue === 'false') {
+        return false;
+      }
     }
   }
 
@@ -919,21 +949,16 @@ export const FastPayBanner = ({ onDismiss }: FastPayBannerProps) => {
 type TopUpTab = 'wallet' | 'tickets';
 type TopUpLookupStatus = 'idle' | 'loading' | 'found' | 'not-found' | 'error';
 
-type TopUpTicketOption = {
-  id: string;
-  name: string;
-  price?: number;
-  paymentTypes?: string[];
-  category?: string;
-  section?: string;
-};
+type TopUpTicket = TicketCatalogTicket;
+type TopUpTicketGroup = TicketCatalogCategory;
 
 type TopUpCardProducts = {
   cardNumber: string;
   cardTitle: string;
   cardType?: string;
+  categories: TopUpTicketGroup[];
   wallet?: WalletProduct;
-  tickets: TopUpTicketOption[];
+  tickets: TopUpTicket[];
 };
 
 const getErrorStatusCode = (error: unknown) => {
@@ -951,23 +976,68 @@ const getTicketProductId = (product: { productId?: string; id?: string; name?: s
 
 const normalizeTicketCatalogProducts = (response: TicketProductsResponse, card: CardSearchItem): TopUpCardProducts => {
   const categories = response.availableProducts?.categories ?? [];
-  const tickets = categories.flatMap((category) =>
-    (category.sections ?? []).flatMap((section) =>
-      (section.products ?? []).map((product, index) => ({
-        category: category.title,
-        id: getTicketProductId(product, index),
-        name: product.name || section.title || category.title || 'Билет',
-        paymentTypes: product.paymentTypes ?? undefined,
-        price: product.price,
-        section: section.title,
-      })),
-    ),
-  );
+  const ticketCategories = categories.map((category, categoryIndex) => {
+    const tickets = (category.sections ?? []).flatMap((section) =>
+      (section.products ?? []).map((product, index) => {
+        const productId = getTicketProductId(product, index);
+        const fallbackOption =
+          !product.options?.length && (product.optionName || product.optionDescr || typeof product.priceDelta === 'number' || typeof product.deltaPrice === 'number')
+            ? [
+                {
+                  descr: product.optionDescr ?? product.optionName ?? null,
+                  id: `${productId}-option-0`,
+                  isDefault: true,
+                  name: product.optionName || product.optionDescr || section.title || category.title || 'Опция',
+                  priceDelta: product.priceDelta ?? product.deltaPrice ?? undefined,
+                },
+              ]
+            : [];
+        const rawOptions: TicketProductOption[] = [...(product.options ?? []), ...(fallbackOption as TicketProductOption[])];
+
+        return {
+          category: category.title,
+          descr: product.descr ?? undefined,
+          id: productId,
+          isFreezable: readBoolean(product, ['isFreezable']) ?? product.isFreezable ?? undefined,
+          isRecommended: readBoolean(product, ['isRecommended']) ?? product.isRecommended ?? undefined,
+          name: product.name || section.title || category.title || 'Билет',
+          options: rawOptions.map((option, optionIndex) => ({
+              descr: option.descr ?? option.name ?? null,
+              id: option.id || `${productId}-option-${optionIndex}`,
+              isDefault: readBoolean(option, ['isDefault']) ?? option.isDefault ?? undefined,
+              isFreezable: readBoolean(option, ['isFreezable']) ?? option.isFreezable ?? undefined,
+              isRecommended: readBoolean(option, ['isRecommended']) ?? option.isRecommended ?? undefined,
+              name: option.name || option.descr || section.title || category.title || 'Опция',
+              price: option.price,
+              priceDelta:
+                option.priceDelta ??
+                option.deltaPrice ??
+                (typeof option.price === 'number' && typeof product.price === 'number' ? option.price - product.price : undefined),
+            })),
+          paymentTypes: product.paymentTypes ?? undefined,
+          price: product.price,
+          section: section.title,
+        };
+      }) as TopUpTicket[],
+    );
+
+    return {
+      id: `${category.iconType || category.title || 'category'}-${categoryIndex}`,
+      iconSrc: getTicketCategoryIcon(category.iconType),
+      iconType: category.iconType,
+      subtitle: category.subtitle,
+      tickets,
+      title: category.title || 'Билеты',
+    };
+  });
+
+  const tickets = ticketCategories.flatMap((category) => category.tickets);
 
   return {
     cardNumber: card.number || response.card?.cardNumberMasked || '',
     cardTitle: getCardTitle(card),
     cardType: response.card?.cardType || card.typeId,
+    categories: ticketCategories,
     tickets,
     wallet: response.availableProducts?.wallet ?? undefined,
   };
@@ -1001,6 +1071,16 @@ const getTopUpTransportCardIcon = (status: TopUpLookupStatus, cardType?: string)
 
   return isVirtualTroikaType(cardType) ? transportCardVirtualTroika : transportCardTroika;
 };
+
+const TICKET_CATEGORY_ICON_BY_TYPE: Record<string, string> = {
+  TAT: ticketCategoryTat,
+  TRAIN: ticketCategoryTrain,
+  UNIFIED: ticketCategoryUnified,
+};
+
+const normalizeTicketCategoryType = (value?: string) => value?.trim().toUpperCase() ?? '';
+
+const getTicketCategoryIcon = (type?: string) => TICKET_CATEGORY_ICON_BY_TYPE[normalizeTicketCategoryType(type)] ?? ticketCategoryUnified;
 
 const PAYMENT_TYPE_LABELS: Record<string, string> = {
   bankCard: 'Банковская карта',
@@ -1262,12 +1342,25 @@ export const TopUpBalanceCard = () => {
   const [bankCards, setBankCards] = useState<TopUpBankCardOption[]>([]);
   const [amount, setAmount] = useState('');
   const [receiptEmail, setReceiptEmail] = useState('');
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [selectedPaymentChoice, setSelectedPaymentChoice] = useState<string | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const isAuthenticated = Boolean(localStorage.getItem('authToken'));
 
   const formattedCardNumber = useMemo(() => formatTransportCardDigits(cardDigits), [cardDigits]);
-  const selectedTicket = cardProducts?.tickets[0];
+  const allTickets = useMemo(() => cardProducts?.tickets ?? [], [cardProducts?.tickets]);
+  const selectedTicketIdForView = useMemo(() => {
+    if (!allTickets.length) {
+      return null;
+    }
+
+    if (selectedTicketId && allTickets.some((ticket) => ticket.id === selectedTicketId)) {
+      return selectedTicketId;
+    }
+
+    return allTickets[0].id;
+  }, [allTickets, selectedTicketId]);
+  const selectedTicket = allTickets.find((ticket) => ticket.id === selectedTicketIdForView) ?? allTickets[0];
   const transportCardIcon = getTopUpTransportCardIcon(lookupStatus, cardProducts?.cardType);
   const currentPaymentTypes = useMemo(
     () => (activeTab === 'wallet' ? cardProducts?.wallet?.paymentTypes ?? [] : selectedTicket?.paymentTypes ?? []),
@@ -1492,31 +1585,15 @@ export const TopUpBalanceCard = () => {
           </>
         ) : (
           <>
-            <label className="field">
+            <div className="field top-up-ticket-groups">
               <span>Вид билета</span>
-              <button className="top-up-action-card top-up-action-card--select" disabled={!selectedTicket} type="button">
-                <span className="field-icon field-icon--ticket" aria-hidden="true" />
-                <span>{selectedTicket ? selectedTicket.name : 'Выберите тип билета'}</span>
-                <span className="chevron" aria-hidden="true" />
-              </button>
-            </label>
-            {cardProducts && (
-              <div className="top-up-ticket-preview" aria-live="polite">
-                {cardProducts.tickets.length ? (
-                  cardProducts.tickets.slice(0, 3).map((ticket) => (
-                    <button className="top-up-ticket-option" key={ticket.id} type="button">
-                      <span>
-                        <strong>{ticket.name}</strong>
-                        {(ticket.category || ticket.section) && <small>{[ticket.category, ticket.section].filter(Boolean).join(' • ')}</small>}
-                      </span>
-                      {typeof ticket.price === 'number' && <b>{formatMoney(ticket.price)} ₽</b>}
-                    </button>
-                  ))
-                ) : (
-                  <p className="top-up-ticket-empty">Для этой карты билеты недоступны</p>
-                )}
-              </div>
-            )}
+              <TicketCatalog
+                categories={cardProducts?.categories ?? []}
+                isCardEntered={cardDigits.length > 0}
+                onSelectTicket={setSelectedTicketId}
+                selectedTicketId={selectedTicket?.id ?? null}
+              />
+            </div>
             <TopUpPaymentField
               bankCards={bankCards}
               isAuthenticated={isAuthenticated}
