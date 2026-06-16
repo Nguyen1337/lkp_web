@@ -1219,22 +1219,22 @@ type TopUpPaymentFieldProps = {
 
 const TopUpPaymentField = ({ bankCards, paymentTypes, selectedPaymentChoice, isOpen, isAuthenticated, isCardFound, onOpen }: TopUpPaymentFieldProps) => {
   const availablePaymentChoices = getTopUpPaymentChoices(paymentTypes, bankCards, isAuthenticated);
-  const currentChoice = availablePaymentChoices.find((choice) => choice.key === selectedPaymentChoice) ?? availablePaymentChoices[0];
-  const paymentLabel = currentChoice
-    ? currentChoice.kind === 'method'
-      ? currentChoice.label
-      : `Банковская карта ${currentChoice.card.maskedPan}`
+  const selectedChoice = availablePaymentChoices.find((choice) => choice.key === selectedPaymentChoice) ?? (isCardFound ? availablePaymentChoices[0] : null);
+  const paymentLabel = selectedChoice
+    ? selectedChoice.kind === 'method'
+      ? selectedChoice.label
+      : `Банковская карта ${selectedChoice.card.maskedPan}`
     : 'Выберите способ оплаты';
 
   return (
     <div className="field top-up-payment-field">
       <span>Способ оплаты</span>
       <button aria-expanded={isOpen} className="top-up-action-card top-up-action-card--select" onClick={isCardFound ? onOpen : undefined} disabled={!isCardFound} type="button">
-        {currentChoice ? (
-          currentChoice.kind === 'method' ? (
-            <PaymentMethodIcon className="payment-method-icon" type={currentChoice.paymentType as PaymentMethodType} />
+        {selectedChoice ? (
+          selectedChoice.kind === 'method' ? (
+            <PaymentMethodIcon className="payment-method-icon" type={selectedChoice.paymentType as PaymentMethodType} />
           ) : (
-            <PaymentSystemBadge className="top-up-payment-bank-system" type={currentChoice.card.paymentSystem} />
+            <PaymentSystemBadge className="top-up-payment-bank-system" type={selectedChoice.card.paymentSystem} />
           )
         ) : (
           <PaymentMethodIcon className="payment-method-icon" type="bankCard" />
