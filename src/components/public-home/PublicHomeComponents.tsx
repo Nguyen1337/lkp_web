@@ -16,13 +16,15 @@ import feedbackCard from '../../assets/public-home/feedback-figma.png';
 import iconCloseDark from '../../assets/public-home/icon-close-dark-figma.svg';
 import iconClose from '../../assets/public-home/icon-close-figma.svg';
 import metroLogo from '../../assets/public-home/metro-logo.svg';
-import paymentCardPlaceholder from '../../assets/public-home/payment-card-placeholder.svg';
 import serviceBike from '../../assets/public-home/service-bike-figma.png';
 import serviceDriver from '../../assets/public-home/service-driver-figma.png';
 import serviceTaxi from '../../assets/public-home/service-taxi-figma.png';
 import storeIcons from '../../assets/public-home/store-icons.png';
 import tariffsCard from '../../assets/public-home/tariffs-figma.png';
 import terminalsCard from '../../assets/public-home/terminals-figma.png';
+import paymentBankCard from '../../assets/ui-kit/payment-bank-card.svg';
+import paymentMirPay from '../../assets/ui-kit/payment-mir-pay.svg';
+import paymentSbp from '../../assets/ui-kit/payment-sbp.svg';
 import transportCardPlaceholder from '../../assets/public-home/transport-card-placeholder.svg';
 import transportCardTroika from '../../assets/public-home/transport-card-troika.svg';
 import transportCardVirtualTroika from '../../assets/public-home/transport-card-virtual-troika.svg';
@@ -990,24 +992,72 @@ const PAYMENT_TYPE_LABELS: Record<string, string> = {
   sbp: 'СБП',
 };
 
+const PAYMENT_TYPE_ICONS: Record<string, string> = {
+  bankCard: paymentBankCard,
+  linkedBankCard: paymentBankCard,
+  mirPay: paymentMirPay,
+  sbp: paymentSbp,
+};
+
 const getPaymentTypeLabel = (type: string) => PAYMENT_TYPE_LABELS[type] ?? type;
+
+const getPaymentTypeIcon = (type: string) => PAYMENT_TYPE_ICONS[type] ?? paymentBankCard;
+
+const getAvailablePaymentTypes = (paymentTypes: string[], isAuthenticated: boolean) => {
+  const allowedTypes = paymentTypes.filter((type) => (isAuthenticated ? true : type !== 'linkedBankCard'));
+
+  return [...new Set(allowedTypes)];
+};
 
 type TopUpPaymentFieldProps = {
   paymentTypes: string[];
+  selectedPaymentType: string | null;
+  isOpen: boolean;
+  isAuthenticated: boolean;
+  onToggle: () => void;
+  onSelect: (paymentType: string) => void;
 };
 
-const TopUpPaymentField = ({ paymentTypes }: TopUpPaymentFieldProps) => {
-  const paymentLabel = paymentTypes.length ? paymentTypes.map(getPaymentTypeLabel).join(', ') : 'Выберите способ оплаты';
+const TopUpPaymentField = ({ paymentTypes, selectedPaymentType, isOpen, isAuthenticated, onToggle, onSelect }: TopUpPaymentFieldProps) => {
+  const availablePaymentTypes = getAvailablePaymentTypes(paymentTypes, isAuthenticated);
+  const currentPaymentType = selectedPaymentType && availablePaymentTypes.includes(selectedPaymentType) ? selectedPaymentType : availablePaymentTypes[0];
+  const paymentLabel = currentPaymentType ? getPaymentTypeLabel(currentPaymentType) : 'Выберите способ оплаты';
 
   return (
-    <label className="field">
+    <div className="field top-up-payment-field">
       <span>Способ оплаты</span>
-      <button className="top-up-action-card top-up-action-card--select" type="button">
-        <img className="payment-method-icon" src={paymentCardPlaceholder} alt="" aria-hidden="true" />
+      <button
+        aria-expanded={isOpen}
+        className="top-up-action-card top-up-action-card--select"
+        onClick={onToggle}
+        type="button"
+      >
+        <img className="payment-method-icon" src={currentPaymentType ? getPaymentTypeIcon(currentPaymentType) : paymentBankCard} alt="" aria-hidden="true" />
         <span className="top-up-payment-label">{paymentLabel}</span>
         <span className="chevron" aria-hidden="true" />
       </button>
-    </label>
+      {isOpen && availablePaymentTypes.length > 0 && (
+        <div className="top-up-payment-dropdown" role="listbox" aria-label="Способы оплаты">
+          {availablePaymentTypes.map((paymentType) => {
+            const isSelected = paymentType === currentPaymentType;
+
+            return (
+              <button
+                aria-selected={isSelected}
+                className={`top-up-payment-dropdown__item${isSelected ? ' top-up-payment-dropdown__item--selected' : ''}`}
+                key={paymentType}
+                onClick={() => onSelect(paymentType)}
+                role="option"
+                type="button"
+              >
+                <img alt="" aria-hidden="true" src={getPaymentTypeIcon(paymentType)} />
+                <span>{getPaymentTypeLabel(paymentType)}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -1039,11 +1089,19 @@ export const TopUpBalanceCard = () => {
   const [cardProducts, setCardProducts] = useState<TopUpCardProducts | null>(null);
   const [amount, setAmount] = useState('');
   const [receiptEmail, setReceiptEmail] = useState('');
+  const [selectedPaymentType, setSelectedPaymentType] = useState<string | null>(null);
+  const [isPaymentDropdownOpen, setIsPaymentDropdownOpen] = useState(false);
+  const paymentDropdownRef = useRef<HTMLDivElement>(null);
+  const isAuthenticated = Boolean(localStorage.getItem('authToken'));
 
   const formattedCardNumber = useMemo(() => formatTransportCardDigits(cardDigits), [cardDigits]);
   const selectedTicket = cardProducts?.tickets[0];
   const transportCardIcon = getTopUpTransportCardIcon(lookupStatus, cardProducts?.cardType);
-  const availablePaymentTypes = activeTab === 'wallet' ? cardProducts?.wallet?.paymentTypes ?? [] : selectedTicket?.paymentTypes ?? [];
+  const availablePaymentTypes = useMemo(
+    () =>
+      getAvailablePaymentTypes(activeTab === 'wallet' ? cardProducts?.wallet?.paymentTypes ?? [] : selectedTicket?.paymentTypes ?? [], isAuthenticated),
+    [activeTab, cardProducts?.wallet?.paymentTypes, isAuthenticated, selectedTicket?.paymentTypes],
+  );
   const walletRange = useMemo(() => {
     const min = cardProducts?.wallet?.priceMin;
     const max = cardProducts?.wallet?.priceMax;
@@ -1054,6 +1112,22 @@ export const TopUpBalanceCard = () => {
 
     return `${formatMoney(min)} - ${formatMoney(max)}`;
   }, [cardProducts?.wallet?.priceMax, cardProducts?.wallet?.priceMin]);
+
+  useEffect(() => {
+    if (!isPaymentDropdownOpen) {
+      return;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!paymentDropdownRef.current?.contains(event.target as Node)) {
+        setIsPaymentDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+
+    return () => document.removeEventListener('pointerdown', handlePointerDown);
+  }, [isPaymentDropdownOpen]);
 
   useEffect(() => {
     if (cardDigits.length !== TRANSPORT_CARD_DIGITS_LENGTH) {
@@ -1112,6 +1186,19 @@ export const TopUpBalanceCard = () => {
 
   const handleAmountChange = (event: ChangeEvent<HTMLInputElement>) => {
     setAmount(event.target.value.replace(/[^\d]/g, ''));
+  };
+
+  const handlePaymentToggle = () => {
+    if (!availablePaymentTypes.length) {
+      return;
+    }
+
+    setIsPaymentDropdownOpen((value) => !value);
+  };
+
+  const handlePaymentSelect = (paymentType: string) => {
+    setSelectedPaymentType(paymentType);
+    setIsPaymentDropdownOpen(false);
   };
 
   const cardStateClass = lookupStatus === 'found' ? ' top-up-card-field--found' : lookupStatus === 'not-found' || lookupStatus === 'error' ? ' top-up-card-field--error' : '';
@@ -1185,7 +1272,16 @@ export const TopUpBalanceCard = () => {
                 <span className="rub">₽</span>
               </span>
             </label>
-            <TopUpPaymentField paymentTypes={availablePaymentTypes} />
+            <div ref={paymentDropdownRef}>
+              <TopUpPaymentField
+                isAuthenticated={isAuthenticated}
+                isOpen={isPaymentDropdownOpen}
+                onSelect={handlePaymentSelect}
+                onToggle={handlePaymentToggle}
+                paymentTypes={availablePaymentTypes}
+                selectedPaymentType={selectedPaymentType}
+              />
+            </div>
             <TopUpReceiptField value={receiptEmail} onChange={setReceiptEmail} />
             <button className="primary-disabled-button top-up-submit" disabled type="button">
               Пополнить
@@ -1218,7 +1314,16 @@ export const TopUpBalanceCard = () => {
                 )}
               </div>
             )}
-            <TopUpPaymentField paymentTypes={availablePaymentTypes} />
+            <div ref={paymentDropdownRef}>
+              <TopUpPaymentField
+                isAuthenticated={isAuthenticated}
+                isOpen={isPaymentDropdownOpen}
+                onSelect={handlePaymentSelect}
+                onToggle={handlePaymentToggle}
+                paymentTypes={availablePaymentTypes}
+                selectedPaymentType={selectedPaymentType}
+              />
+            </div>
             <TopUpReceiptField value={receiptEmail} onChange={setReceiptEmail} />
             <button className="primary-disabled-button top-up-submit" disabled type="button">
               Купить билет

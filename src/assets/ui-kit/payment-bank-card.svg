@@ -1,0 +1,38 @@
+<svg width="24" height="16" viewBox="0 0 24 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="24" height="16" fill="white"/>
+<g id="ICONS">
+<path d="M-917 -632C-917 -645.255 -906.255 -656 -893 -656H536C549.255 -656 560 -645.255 560 -632V409C560 422.255 549.255 433 536 433H-893C-906.255 433 -917 422.255 -917 409V-632Z" fill="#F1F1F1"/>
+<g id="Labels/Bank Cards/BankCard">
+<rect x="-28.5" y="-67.5" width="81" height="105" rx="4.5" fill="white"/>
+<rect x="-28.5" y="-67.5" width="81" height="105" rx="4.5" stroke="#9747FF" stroke-dasharray="10 5"/>
+<g id="Size=S">
+<path d="M0 2C0 0.895431 0.895431 0 2 0L22 0C23.1046 0 24 0.895431 24 2V14C24 15.1046 23.1046 16 22 16H2C0.89543 16 0 15.1046 0 14L0 2Z" fill="url(#paint0_radial_286_39190)"/>
+<g id="Vector">
+<path d="M2 12C2 11.4477 2.44772 11 3 11C3.55228 11 4 11.4477 4 12C4 12.5523 3.55228 13 3 13C2.44772 13 2 12.5523 2 12Z" fill="white"/>
+<path d="M5 12C5 11.4477 5.44772 11 6 11C6.55228 11 7 11.4477 7 12C7 12.5523 6.55228 13 6 13C5.44772 13 5 12.5523 5 12Z" fill="white"/>
+<path d="M8 12C8 11.4477 8.44772 11 9 11C9.55228 11 10 11.4477 10 12C10 12.5523 9.55228 13 9 13C8.44772 13 8 12.5523 8 12Z" fill="white"/>
+<path d="M11 12C11 11.4477 11.4477 11 12 11C12.5523 11 13 11.4477 13 12C13 12.5523 12.5523 13 12 13C11.4477 13 11 12.5523 11 12Z" fill="white"/>
+<path d="M14 12C14 11.4477 14.4477 11 15 11C15.5523 11 16 11.4477 16 12C16 12.5523 15.5523 13 15 13C14.4477 13 14 12.5523 14 12Z" fill="white"/>
+</g>
+<g id="Group 8187">
+<rect id="Rectangle 36605" x="2" y="2" width="6" height="5" rx="1" fill="#FCF2D1"/>
+<g id="Mask group">
+<mask id="mask0_286_39190" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="2" y="2" width="6" height="5">
+<rect id="Rectangle 36607" width="6" height="5" rx="1" transform="matrix(-1 0 0 1 8 2)" fill="#FFFAEA"/>
+</mask>
+<g mask="url(#mask0_286_39190)">
+<path id="Vector 200 (Stroke)" fill-rule="evenodd" clip-rule="evenodd" d="M3.5 2H4.5V3H8.5V4H7V7H6V4H4.5V7H3.5V6.25H1.5V5.25H3.5V2Z" fill="#F8D978"/>
+</g>
+</g>
+</g>
+<rect id="Rectangle 36612" x="17" y="2" width="5" height="3" rx="1.5" fill="white"/>
+</g>
+</g>
+</g>
+<defs>
+<radialGradient id="paint0_radial_286_39190" cx="0" cy="0" r="1" gradientTransform="matrix(-22.2353 14.5116 -13.3651 -21.2894 23.2941 0.558139)" gradientUnits="userSpaceOnUse">
+<stop offset="0.0874215" stop-color="#E7EEFF"/>
+<stop offset="0.58822" stop-color="#D6E2FF"/>
+</radialGradient>
+</defs>
+</svg>

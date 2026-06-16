@@ -919,6 +919,7 @@
 
 .top-up-action-card {
   width: 100%;
+  position: relative;
   justify-content: flex-start;
   border: 0;
   text-align: left;
@@ -1013,6 +1014,61 @@
 }
 
 .top-up-payment-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.top-up-payment-field {
+  position: relative;
+  z-index: 1;
+}
+
+.top-up-payment-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 3;
+  width: 100%;
+  padding: 8px;
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 12px 32px rgba(51, 51, 51, 0.12);
+}
+
+.top-up-payment-dropdown__item {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  padding: 8px 10px;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.top-up-payment-dropdown__item:hover,
+.top-up-payment-dropdown__item--selected {
+  background: #f7f8fa;
+}
+
+.top-up-payment-dropdown__item img {
+  width: 24px;
+  height: 16px;
+  flex: 0 0 auto;
+  display: block;
+}
+
+.top-up-payment-dropdown__item span {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
