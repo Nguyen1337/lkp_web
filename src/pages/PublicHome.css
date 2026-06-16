@@ -1028,12 +1028,10 @@
 
 .top-up-payment-bank-system,
 .top-up-payment-modal__bank-system {
-  min-width: 42px;
-  height: 28px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  width: 24px;
+  height: 16px;
   flex: 0 0 auto;
+  display: block;
 }
 
 .top-up-payment-modal__overlay {
