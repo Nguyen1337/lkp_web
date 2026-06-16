@@ -1,5 +1,5 @@
 {
-  "filename": "https://static.mosmetro.ru/shared/chatbot/threadswidget-6.13.3.min.js",
+  "filename": "/chatbot/threadswidget-6.13.3.min.js",
   "webchat": {
     "locale": "ru",
     "enableVoiceMessages": true,
@@ -26,7 +26,7 @@
     "openGraph": false,
     "pushserver": "https://pushservertest.mfms.ru/push-test",
     "websocket": "wss://mosmetro.threads.im/socket",
-    "hideWelcome": true,
+    "hideWelcome": false,
     "welcomeForm": {
       "name": {
         "visible": false,
@@ -42,18 +42,25 @@
       "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAMAAAAp4XiDAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAABOUExURUxpcejo6Onp6enp6eTk5Onp6erq6uvr6+np6eXl5enp6ejo6Ovr6+zs7Ojo6Onp6ePj4+rq6pmZmdPT06enp+bm5p6entra2sLCwrm5ueNweO8AAAARdFJOUwBOiKUcunn78A3dnllqk8XwLooT9gAAAWVJREFUSMedllmShSAMRXHggYq+YhLd/0bbtluLJODA/SR1yiQmFxgj6tTEeymE7PmkOnarduRCRxJ8bK+BQSc05KGuljopWWfyqzLADlUp4qMv9aFJNfpGDUqu++pbfSHT6AdqXtSRqKeiUR+Cp6dn3zrcXW+d2eQs6fVRTo0CYQd2KKBQ/T8l6CNhNqdmxMi/2UFz5SNiY1BFw/4R9O3VAK0o/PuZEZ3NEJlReNwQjvIySCgzvnVYvENEx5R+h2jFprfIhEu5Rzjr3yI9I9t702QtmcBHDiIOxwVFFogsFCGJBYgEmlivLzMjeW3lc3JmY4Rs2dbkia7rmp/j/VcquvYxQg1A0bFc4IotdCxhMQhIQBytmHUmIeA0I1jkkASQ07SxXQRzoRDbxWlK9gqxwJQO63uC1NBgvcsTzkODPWzc26w8svGSy6LkSiq5+Aqu15JLvOipUPIgKXn2FD2uHj3hfgChdIQNPQdYDAAAAABJRU5ErkJggg=="
     },
     "chatHeader": {
-      "title": "Добро пожаловать в чат!"
+      "title": "Быстрый ответ"
     },
     "welcome": {
       "pre": {
-        "text": "Привет! Я метробот",
-        "notice": "Меня можно спросить обо всем, но я не умею давать справки с печатями (подскажу, где их взять) Чем могу помочь?"
+        "text": "Привет!",
+        "notice": "Добро пожаловать в чат-бот Александра!"
       },
       "post": {
         "text": "Спасибо за то, что представились.",
         "notice": "Это необходимо для идентификации."
       }
     },
+    "lkpStarterQuickReplies": [
+      "Как пополнить «Тройку»?",
+      "Как оплатить проезд по МЦК?",
+      "В трамвай пустят с котом?",
+      "Когда в метро наступает час пик?",
+      "Где в метро зарядить телефон?"
+    ],
     "chatEndPoll": {
       "text": {
         "ru": "Специалист ответил на все ваши вопросы, продолжить консультацию?",
