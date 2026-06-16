@@ -206,9 +206,9 @@
 
 .payment-system-badge {
   display: inline-block;
-  width: 38px;
-  height: 24px;
-  border-radius: 4px;
+  width: 24px;
+  height: 16px;
+  border-radius: 2px;
   object-fit: contain;
   flex-shrink: 0;
   vertical-align: middle;
