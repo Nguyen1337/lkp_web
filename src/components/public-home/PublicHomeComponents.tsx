@@ -1290,7 +1290,7 @@ const TopUpPaymentModal = ({ bankCards, isAuthenticated, isOpen, onClose, onSele
                       <span>{choice.card.maskedPan}</span>
                     </span>
                   </button>
-                );
+                       );
               })}
             </div>
           )}
