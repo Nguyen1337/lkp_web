@@ -973,9 +973,12 @@ const getTicketProductId = (product: { productId?: string; id?: string; name?: s
 
 const normalizeTicketCatalogProducts = (response: TicketProductsResponse, card: CardSearchItem): TopUpCardProducts => {
   const categories = response.availableProducts?.categories ?? [];
+  const productIconUrl = (iconType?: string) =>
+    (response.icons?.products?.[iconType ?? ''] ?? [])[0];
+
   const ticketCategories = categories.map((category, categoryIndex) => {
-    const tickets = (category.sections ?? []).flatMap((section) =>
-      (section.products ?? []).map((product, index) => {
+    const catalogSections = (category.sections ?? []).map((section, sectionIndex) => {
+      const tickets = (section.products ?? []).map((product, index) => {
         const productId = getTicketProductId(product, index);
         const fallbackOption =
           !product.options?.length && (product.optionName || product.optionDescr || typeof product.priceDelta === 'number' || typeof product.deltaPrice === 'number')
@@ -992,43 +995,48 @@ const normalizeTicketCatalogProducts = (response: TicketProductsResponse, card: 
         const rawOptions: TicketProductOption[] = [...(product.options ?? []), ...(fallbackOption as TicketProductOption[])];
 
         return {
-          category: category.title,
           descr: product.descr ?? undefined,
           id: productId,
-          productIconUrl: (response.icons?.products?.[category.productIconType ?? category.iconType ?? ''] ?? [])[0],
+          productIconUrl: productIconUrl(category.productIconType ?? category.iconType),
           isFreezable: readBoolean(product, ['isFreezable']) ?? product.isFreezable ?? undefined,
           isRecommended: readBoolean(product, ['isRecommended']) ?? product.isRecommended ?? undefined,
           name: product.name || section.title || category.title || 'Билет',
           options: rawOptions.map((option, optionIndex) => ({
-              descr: option.descr ?? option.name ?? null,
-              id: option.id || `${productId}-option-${optionIndex}`,
-              isDefault: readBoolean(option, ['isDefault']) ?? option.isDefault ?? undefined,
-              isFreezable: readBoolean(option, ['isFreezable']) ?? option.isFreezable ?? undefined,
-              isRecommended: readBoolean(option, ['isRecommended']) ?? option.isRecommended ?? undefined,
-              name: option.name || option.descr || section.title || category.title || 'Опция',
-              price: option.price,
-              priceDelta:
-                option.priceDelta ??
-                option.deltaPrice ??
-                (typeof option.price === 'number' && typeof product.price === 'number' ? option.price - product.price : undefined),
-            })),
+            descr: option.descr ?? option.name ?? null,
+            id: option.id || `${productId}-option-${optionIndex}`,
+            isDefault: readBoolean(option, ['isDefault']) ?? option.isDefault ?? undefined,
+            isFreezable: readBoolean(option, ['isFreezable']) ?? option.isFreezable ?? undefined,
+            isRecommended: readBoolean(option, ['isRecommended']) ?? option.isRecommended ?? undefined,
+            name: option.name || option.descr || section.title || category.title || 'Опция',
+            price: option.price,
+            priceDelta:
+              option.priceDelta ??
+              option.deltaPrice ??
+              (typeof option.price === 'number' && typeof product.price === 'number' ? option.price - product.price : undefined),
+          })),
           paymentTypes: product.paymentTypes ?? undefined,
           price: product.price,
-          section: section.title,
-        };
-      }) as TopUpTicket[],
-    );
+        } as TopUpTicket;
+      });
+
+      return {
+        id: `${category.iconType || 'cat'}-${categoryIndex}-sec-${sectionIndex}`,
+        title: section.title || undefined,
+        iconUrls: response.icons?.sections?.[section.iconType ?? ''] ?? [],
+        tickets,
+      };
+    });
 
     return {
       id: `${category.iconType || category.title || 'category'}-${categoryIndex}`,
       iconUrls: response.icons?.categories?.[category.iconType ?? ''] ?? [],
       subtitle: category.subtitle,
-      tickets,
+      sections: catalogSections,
       title: category.title || 'Билеты',
     };
   });
 
-  const tickets = ticketCategories.flatMap((category) => category.tickets);
+  const tickets = ticketCategories.flatMap((cat) => cat.sections.flatMap((s) => s.tickets));
 
   return {
     cardNumber: card.number || response.card?.cardNumberMasked || '',
@@ -1078,8 +1086,19 @@ const PAYMENT_TYPE_LABELS: Record<string, string> = {
 
 const getPaymentTypeLabel = (type: string) => PAYMENT_TYPE_LABELS[type] ?? type;
 
-const getAvailablePaymentTypes = (paymentTypes: string[], isAuthenticated: boolean) => {
-  const allowedTypes = paymentTypes.filter((type) => (isAuthenticated ? true : type !== 'linkedBankCard'));
+const PAYMENT_SYSTEM_LABELS: Record<string, string> = {
+  MIR: 'Мир',
+  VISA: 'Visa',
+  MASTERCARD: 'Mastercard',
+  UNIONPAY: 'UnionPay',
+  UNKNOWN: 'Банковская карта',
+};
+
+const getAvailablePaymentTypes = (paymentTypes: string[], isAuthenticated: boolean, hasBankCards: boolean) => {
+  const allowedTypes = paymentTypes.filter((type) => {
+    if (type === 'linkedBankCard') return isAuthenticated && !hasBankCards;
+    return true;
+  });
 
   return [...new Set(allowedTypes)];
 };
@@ -1160,7 +1179,7 @@ const normalizeBankCards = (value: unknown): TopUpBankCardOption[] =>
   });
 
 const getTopUpPaymentChoices = (paymentTypes: string[], bankCards: TopUpBankCardOption[], isAuthenticated: boolean): TopUpPaymentChoice[] => {
-  const methodChoices = getAvailablePaymentTypes(paymentTypes, isAuthenticated).map((paymentType) => ({
+  const methodChoices = getAvailablePaymentTypes(paymentTypes, isAuthenticated, bankCards.length > 0).map((paymentType) => ({
     kind: 'method' as const,
     key: `method:${paymentType}`,
     label: getPaymentTypeLabel(paymentType),
@@ -1253,7 +1272,6 @@ const TopUpPaymentModal = ({ bankCards, isAuthenticated, isOpen, onClose, onSele
           <div className="top-up-payment-modal__section">
             {methodChoices.map((choice) => {
               const isSelected = choice.key === currentChoice?.key;
-
               return (
                 <button
                   aria-selected={isSelected}
@@ -1268,32 +1286,27 @@ const TopUpPaymentModal = ({ bankCards, isAuthenticated, isOpen, onClose, onSele
                 </button>
               );
             })}
+            {linkedBankCards.map((choice) => {
+              const isSelected = choice.key === currentChoice?.key;
+              const systemLabel = PAYMENT_SYSTEM_LABELS[choice.card.paymentSystem] ?? 'Банковская карта';
+              return (
+                <button
+                  aria-selected={isSelected}
+                  className={`top-up-payment-modal__item top-up-payment-modal__item--bank${isSelected ? ' top-up-payment-modal__item--selected' : ''}`}
+                  key={choice.key}
+                  onClick={() => onSelect(choice.key)}
+                  role="option"
+                  type="button"
+                >
+                  <PaymentSystemBadge className="top-up-payment-modal__bank-system" type={choice.card.paymentSystem} />
+                  <span className="top-up-payment-modal__item-text">
+                    <span>{systemLabel}</span>
+                    <span>{choice.card.maskedPan}</span>
+                  </span>
+                </button>
+              );
+            })}
           </div>
-          {isAuthenticated && linkedBankCards.length > 0 && (
-            <div className="top-up-payment-modal__section">
-              <div className="top-up-payment-modal__section-title">Привязанные карты</div>
-              {linkedBankCards.map((choice) => {
-                const isSelected = choice.key === currentChoice?.key;
-
-                return (
-                  <button
-                    aria-selected={isSelected}
-                    className={`top-up-payment-modal__item top-up-payment-modal__item--bank${isSelected ? ' top-up-payment-modal__item--selected' : ''}`}
-                    key={choice.key}
-                    onClick={() => onSelect(choice.key)}
-                    role="option"
-                    type="button"
-                  >
-                    <PaymentSystemBadge className="top-up-payment-modal__bank-system" type={choice.card.paymentSystem} />
-                    <span className="top-up-payment-modal__item-text">
-                      <span>Банковская карта</span>
-                      <span>{choice.card.maskedPan}</span>
-                    </span>
-                  </button>
-                       );
-              })}
-            </div>
-          )}
         </div>
       </div>
     </div>
