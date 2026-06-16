@@ -23,6 +23,8 @@ import { PaymentSystemBadge, SubwayLineBadge, TicketBadge } from '../components/
 import type { PaymentSystemType, SubwayLineType, TicketBadgeType } from '../components/ui-kit/TransitBadges';
 import { HistoryDrawer } from '../components/history/HistoryDrawer';
 import type { HistoryFilterMethod } from '../components/history/HistoryFilters';
+import { TransactionRow } from '../components/history/TransactionRow';
+import { formatDayLabel } from '../features/history/historyModel';
 import './PublicHome.css';
 import './Dashboard.css';
 
@@ -580,7 +582,11 @@ const normalizeHistory = (bootstrap: DashboardBootstrapResponse | null) => {
 const getDisplayPhone = (bootstrap: DashboardBootstrapResponse | null) => {
   const accountInfo = unwrapData(bootstrap?.accountInfo);
   const phone = readString(accountInfo, ['phone', 'userName', 'username']);
-  return formatPhone(phone);
+  if (phone) {
+    return formatPhone(phone);
+  }
+  // До загрузки accountInfo показываем номер, по которому вошли (сохранён при OTP).
+  return localStorage.getItem('userPhone') ?? formatPhone(undefined);
 };
 
 const getChatClientId = (bootstrap: DashboardBootstrapResponse | null) => {
@@ -643,10 +649,38 @@ const EmptyPaymentMethods = () => (
 
 const HistoryIcon = ({ item }: { item: HistoryItemView }) => {
   if (item.iconType === 'ticket') {
-    return <TicketBadge type={item.ticketType} className="history-item__badge" />;
+    return <TicketBadge type={item.ticketType} className="tx-row__badge" />;
   }
 
-  return <SubwayLineBadge type={item.lineType} className="history-item__badge" />;
+  return <SubwayLineBadge type={item.lineType} className="tx-row__badge" />;
+};
+
+const toHistoryMillis = (timestamp: number) => (timestamp > 10_000_000_000 ? timestamp : timestamp * 1000);
+
+type HistoryDayBucket = {
+  key: string;
+  label: string;
+  items: HistoryItemView[];
+};
+
+const groupHistoryByDay = (items: HistoryItemView[]): HistoryDayBucket[] => {
+  const buckets = new Map<string, HistoryDayBucket>();
+
+  for (const item of items) {
+    const millis = toHistoryMillis(item.timestamp);
+    const date = new Date(millis);
+    const key = item.timestamp
+      ? `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
+      : 'unknown';
+    const bucket = buckets.get(key);
+    if (bucket) {
+      bucket.items.push(item);
+    } else {
+      buckets.set(key, { key, label: item.timestamp ? formatDayLabel(millis) : '', items: [item] });
+    }
+  }
+
+  return [...buckets.values()];
 };
 
 export const Dashboard = () => {
@@ -679,6 +713,7 @@ export const Dashboard = () => {
 
   const paymentMethods = useMemo(() => normalizePaymentMethods(bootstrap), [bootstrap]);
   const historyItems = useMemo(() => normalizeHistory(bootstrap), [bootstrap]);
+  const historyGroups = useMemo(() => groupHistoryByDay(historyItems), [historyItems]);
   const displayPhone = useMemo(() => getDisplayPhone(bootstrap), [bootstrap]);
   const chatClientId = useMemo(() => getChatClientId(bootstrap), [bootstrap]);
   const historyFilterMethods = useMemo<HistoryFilterMethod[]>(
@@ -693,6 +728,7 @@ export const Dashboard = () => {
 
   const handleLogout = () => {
     void apiService.logout().finally(() => {
+      localStorage.removeItem('userPhone');
       navigate('/');
       window.location.reload();
     });
@@ -769,33 +805,31 @@ export const Dashboard = () => {
 
             <section className="history-panel" aria-labelledby="history-title">
               <div className="history-panel__title">
-                <h2 id="history-title">Последние операции</h2>
-                <span aria-hidden="true" />
+                <h2 id="history-title">История</h2>
               </div>
-              <p className="history-panel__date">Сегодня</p>
-              <div className="history-list" aria-busy={isLoading}>
+              <div className="history-panel__list" aria-busy={isLoading}>
                 {isLoading && <p className="authorized-empty-state">Загружаем поездки и операции...</p>}
-                {!isLoading && historyItems.length === 0 && <p className="authorized-empty-state">История появится после первых поездок и операций.</p>}
-                {historyItems.map((item) => (
-                  <article className="history-item" key={item.id}>
-                    <div className="history-item__main">
-                      <div className="history-item__title">
-                        <span className="history-item__icon-box">
-                          <HistoryIcon item={item} />
-                        </span>
-                        <strong>{item.title}</strong>
-                      </div>
-                      <div className="history-item__amount">
-                        <p className={`history-item__amount-value history-item__amount-value--${item.amountTone}`}>{item.amount}</p>
-                        <small>{item.time}</small>
-                      </div>
+                {!isLoading && historyGroups.length === 0 && (
+                  <p className="authorized-empty-state">История появится после первых поездок и операций.</p>
+                )}
+                {historyGroups.map((group) => (
+                  <section className="history-day" key={group.key}>
+                    <p className="history-day__label">{group.label}</p>
+                    <div className="history-day__rows">
+                      {group.items.map((item) => (
+                        <TransactionRow
+                          key={item.id}
+                          icon={<HistoryIcon item={item} />}
+                          title={item.title}
+                          source={item.source}
+                          amount={item.amount}
+                          amountTone={item.amountTone}
+                          caption={item.action}
+                          time={item.time}
+                        />
+                      ))}
                     </div>
-                    <div className="history-item__details">
-                      <p>{item.source}</p>
-                      <small>{item.action}</small>
-                    </div>
-                    {item.warning && <div className="history-item__warning">{item.warning}</div>}
-                  </article>
+                  </section>
                 ))}
               </div>
               <button className="history-panel__all" type="button" onClick={() => setIsHistoryOpen(true)}>

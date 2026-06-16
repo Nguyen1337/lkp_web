@@ -1,0 +1,58 @@
+.error-boundary {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--page-bg, #f8f8f8);
+}
+
+.error-boundary__box {
+  max-width: 420px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px;
+  text-align: center;
+  background: var(--surface, #fff);
+  border-radius: var(--figma-radius-lg, 16px);
+  box-shadow: var(--shadow-md, 0 18px 44px rgba(43, 43, 45, 0.08));
+}
+
+.error-boundary__title {
+  margin: 0;
+  color: var(--text, #333);
+  font-family: var(--font-sans);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 28px;
+}
+
+.error-boundary__text {
+  margin: 0;
+  color: var(--text-muted, #7b7f85);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 20px;
+}
+
+.error-boundary__button {
+  margin-top: 8px;
+  min-height: 50px;
+  padding: 16px 24px;
+  border: 0;
+  border-radius: var(--figma-radius-lg, 16px);
+  background: var(--primary, #da2032);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.error-boundary__button:hover {
+  background: var(--primary-dark, #c41c29);
+}

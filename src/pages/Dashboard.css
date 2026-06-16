@@ -717,9 +717,29 @@
   line-height: 18px;
 }
 
-.history-list {
-  display: grid;
-  gap: 6px;
+.history-panel__list {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 18px;
+  padding-bottom: 74px;
+}
+
+.history-panel::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 74px;
+  height: 110px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), var(--surface));
+  pointer-events: none;
+  z-index: 1;
+}
+
+.history-panel__all {
+  z-index: 2;
 }
 
 .history-item {

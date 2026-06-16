@@ -638,6 +638,7 @@ const AuthConfirmationModal = ({
     try {
       const tokenResponse = await apiService.confirmOtpCode(authKey, code);
       localStorage.setItem('authToken', tokenResponse.access_token);
+      localStorage.setItem('userPhone', phone);
 
       if (tokenResponse.refresh_token) {
         localStorage.setItem('refreshToken', tokenResponse.refresh_token);

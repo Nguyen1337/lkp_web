@@ -2,31 +2,24 @@
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  padding-bottom: 24px;
-}
-
-.history-drawer__tabs {
-  position: sticky;
-  top: 0;
-  z-index: 1;
 }
 
 .history-drawer__toolbar {
   display: flex;
-  justify-content: flex-end;
-  padding: 16px 0 8px;
+  justify-content: flex-start;
+  margin-top: 12px;
 }
 
 .history-drawer__filter {
-  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
+  gap: 4px;
+  height: 34px;
+  padding: 8px 12px;
   border: 0;
   border-radius: var(--figma-radius-sm);
-  background: var(--field-bg);
-  color: var(--text);
+  background: var(--figma-color-brand-tertiary-hover, #f9f9f9);
+  color: var(--figma-color-text-primary);
   font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 500;
@@ -39,24 +32,22 @@
   background: var(--figma-color-fill-primary-click);
 }
 
-.history-drawer__filter svg {
-  width: 18px;
-  height: 18px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
+.history-drawer__filter--active {
+  background: var(--figma-color-fill-primary-click);
 }
 
-.history-drawer__filter-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--primary);
+.history-drawer__filter svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
 }
 
 .history-drawer__content {
   flex: 1;
+  margin-top: 24px;
 }
 
 .history-drawer__state {
@@ -67,19 +58,23 @@
   text-align: center;
 }
 
-.history-groups {
+.history-days {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
-.history-group__label {
-  margin: 16px 0 8px;
-  color: var(--text-muted);
+.history-day__label {
+  margin: 0 0 12px;
+  color: var(--figma-color-text-secondary);
+  font-family: var(--font-sans);
   font-size: 14px;
+  font-weight: 300;
   line-height: 18px;
 }
 
-.history-group:first-child .history-group__label {
-  margin-top: 4px;
+.history-day__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }

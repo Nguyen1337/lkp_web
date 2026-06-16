@@ -89,7 +89,7 @@ export const HistoryDrawer = ({ open, onClose, paymentMethods = [] }: HistoryDra
   const filterActive = isHistoryFilterActive(filters);
 
   return (
-    <SideDrawer open={open} onClose={onClose} title="История" width={460} className="history-drawer-shell">
+    <SideDrawer open={open} onClose={onClose} title="История" width={704} className="history-drawer-shell">
       <div className="history-drawer">
         <SegmentedTabs options={TABS} value={tab} onChange={setTab} className="history-drawer__tabs" />
 
@@ -99,11 +99,10 @@ export const HistoryDrawer = ({ open, onClose, paymentMethods = [] }: HistoryDra
             className={`history-drawer__filter${filterActive ? ' history-drawer__filter--active' : ''}`}
             onClick={() => setFiltersOpen(true)}
           >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 6h16M7 12h10M10 18h4" />
+            <span>Фильтры</span>
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path d="M3 5h14M5.5 10h9M8 15h4" />
             </svg>
-            Фильтры
-            {filterActive && <span className="history-drawer__filter-dot" aria-hidden="true" />}
           </button>
         </div>
 

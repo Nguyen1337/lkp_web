@@ -1,17 +1,17 @@
 .segmented {
   display: flex;
   gap: 4px;
-  padding: 4px;
-  border-radius: var(--figma-radius-md);
+  padding: 3px;
+  border-radius: var(--figma-radius-sm);
   background: var(--figma-color-fill-primary-default);
 }
 
 .segmented__item {
   flex: 1;
-  min-height: 34px;
-  padding: 8px 12px;
+  height: 28px;
+  padding: 0 12px;
   border: 0;
-  border-radius: var(--figma-radius-sm);
+  border-radius: var(--figma-radius-xs, 6px);
   background: transparent;
   color: var(--figma-color-text-primary);
   font-family: var(--font-sans);
