@@ -194,8 +194,19 @@ class ApiService {
       return config;
   }
 
-  async login(email: string, password: string): Promise<{ token: string }> {
-    return { token: `demo-token-${email.length}-${password.length}` };
+  async login(username: string, password: string): Promise<OtpTokenResponse> {
+    const body = new URLSearchParams({
+      grant_type: 'password',
+      password,
+      scope: OTP_SCOPE,
+      username,
+    });
+
+    const response = await this.authApi.post<OtpTokenResponse>('/connect/token', body, {
+      headers: this.getOtpHeaders(),
+    });
+
+    return response.data;
   }
 
   async requestOtpCode(username: string): Promise<OtpStartResponse> {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiService } from '../api/apiService';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import './Login.css';
@@ -17,8 +18,14 @@ export const Login: React.FC = () => {
     setLoading(true);
 
     try {
-      // TODO: заменить на реальный запрос к API после согласования auth flow.
-      localStorage.setItem('authToken', 'demo-token-12345');
+      const tokenResponse = await apiService.login(email, password);
+      localStorage.setItem('authToken', tokenResponse.access_token);
+
+      if (tokenResponse.refresh_token) {
+        localStorage.setItem('refreshToken', tokenResponse.refresh_token);
+      }
+
+      localStorage.setItem('authExpiresAt', String(Date.now() + tokenResponse.expires_in * 1000));
       navigate('/');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Ошибка входа');
