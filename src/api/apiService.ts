@@ -87,6 +87,18 @@ export type TicketProductSection = {
   products?: TicketProduct[];
 };
 
+export type BankCardItem = {
+  cardType?: string;
+  displayName?: string;
+  externalLinkedBankCardId?: string;
+  id?: string;
+  linkedBankCardId?: string;
+  maskedPan?: string;
+  number?: string;
+  pan?: string;
+  type?: string;
+};
+
 export type TicketProductCategory = {
   iconType?: string;
   productIconType?: string;
@@ -248,6 +260,11 @@ class ApiService {
 
   async getSbpSubscriptionState(): Promise<unknown> {
     const response = await this.passengerApi.get<unknown>('/sbp/v1.0/subscription/state');
+    return response.data;
+  }
+
+  async getBankCards(): Promise<unknown> {
+    const response = await this.passengerApi.get<unknown>('/bankCards/v1.0');
     return response.data;
   }
 
