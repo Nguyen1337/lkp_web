@@ -625,43 +625,29 @@ const getChatClientId = (bootstrap: DashboardBootstrapResponse | null) => {
   return readString(accountInfo, ['userId', 'id', 'accountId']);
 };
 
-const PaymentMethodCard = ({ method }: { method: PaymentMethodView }) => (
-  <article className={`payment-card payment-card--${method.type} payment-card--${method.severity}`}>
-    {method.type === 'bank' ? (
-      <div className="payment-card__bank-content">
-        <div>
-          <p>{method.title}</p>
-          <strong>{method.primary}</strong>
+const PaymentMethodCard = ({ method }: { method: PaymentMethodView }) => {
+  const cardImage = method.carrierIcon ?? method.visualImage;
+  const isBank = method.type === 'bank';
+  const detailRows = method.details?.length
+    ? method.details
+    : [{ id: 'default', label: method.secondary, ticketType: method.ticketType ?? ('Union' as const), value: method.meta }];
+
+  return (
+    <article className={`payment-card payment-card--${method.type} payment-card--${method.severity}`}>
+      <div className="payment-card__content">
+        <div className="payment-card__info">
+          <p className="payment-card__title">{method.title}</p>
+          <strong className="payment-card__primary">{method.primary}</strong>
         </div>
-        {method.carrierIcon ? (
-          <img src={method.carrierIcon} alt={method.paymentSystem ?? ''} className="payment-card__carrier-icon" />
+        {cardImage ? (
+          <img src={cardImage} alt="" aria-hidden="true" className="payment-card__image" />
         ) : (
           <PaymentSystemBadge type={method.paymentSystem ?? 'UNKNOWN'} className="payment-card__bank-system" />
         )}
       </div>
-    ) : (
-      <>
-        <div className="payment-card__content">
-          <div>
-            <p>{method.title}</p>
-            <strong>{method.primary}</strong>
-          </div>
-          <div className={`payment-card__visual${(method.carrierIcon ?? method.visualImage) ? ' payment-card__visual--with-image' : ''}`} aria-hidden="true">
-            {(method.carrierIcon ?? method.visualImage) && <img src={method.carrierIcon ?? method.visualImage} alt="" />}
-            <span>{method.blocked ? 'Заблокирована' : method.statusText}</span>
-          </div>
-        </div>
+      {!isBank && (
         <div className="payment-card__details">
-          {(method.details?.length
-            ? method.details
-            : [
-                {
-                  id: 'default',
-                  label: method.secondary,
-                  ticketType: method.ticketType ?? 'Union',
-                  value: method.meta,
-                },
-              ]).map((detail) => (
+          {detailRows.map((detail) => (
             <div className="payment-card__row" key={detail.id}>
               <TicketBadge type={detail.ticketType} />
               <span>{detail.label}</span>
@@ -669,11 +655,13 @@ const PaymentMethodCard = ({ method }: { method: PaymentMethodView }) => (
             </div>
           ))}
         </div>
-      </>
-    )}
-    {method.warning && <div className={`payment-card__warning payment-card__warning--${method.severity}`}>{method.warning}</div>}
-  </article>
-);
+      )}
+      {method.warning && (
+        <div className={`payment-card__warning payment-card__warning--${method.severity}`}>{method.warning}</div>
+      )}
+    </article>
+  );
+};
 
 const EmptyPaymentMethods = () => (
   <div className="payment-methods-empty">
