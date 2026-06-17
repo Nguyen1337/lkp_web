@@ -488,9 +488,16 @@ const hideSdkInviteArtifacts = () => {
   });
 };
 
+// Module-level flag: tracks what the SDK told us via showChat/hideChat.
+// More reliable than DOM inspection — `getVisibleWidgetFrame` depends on
+// guessing the SDK's element IDs and can easily return null when the SDK
+// is actually open, causing the polling to call setIsOpen(false) and close the chat.
+let sdkChatShown = false;
+
 const readChatOpenState = () =>
   document.body.classList.contains('lkp-chat-starter-visible') ||
   localStorage.getItem(CHAT_OPEN_STORAGE_KEY) === 'true' ||
+  sdkChatShown ||
   Boolean(getVisibleWidgetFrame());
 
 const wrapWidgetOpenMethods = (setOpen: (isOpen: boolean) => void) => {
@@ -505,10 +512,12 @@ const wrapWidgetOpenMethods = (setOpen: (isOpen: boolean) => void) => {
 
   widget.isLkpWrapped = true;
   widget.showChat = (payload?: unknown) => {
+    sdkChatShown = true;
     setOpen(true);
     originalShowChat?.(payload);
   };
   widget.hideChat = (payload?: unknown) => {
+    sdkChatShown = false;
     setOpen(false);
     originalHideChat?.(payload);
   };
@@ -610,6 +619,7 @@ const startWidgetOpenStateSync = (setOpen: (isOpen: boolean) => void) => {
   }, 150);
 
   window.ThreadsWidget?.onHideChat?.(() => {
+    sdkChatShown = false;
     setOpen(false);
   });
 
@@ -922,42 +932,51 @@ export const ChatWidget = ({ clientId, isAuthenticated = false }: ChatWidgetProp
   if (status === 'ready') {
     return isOpen ? (
       <>
-        <button
-          className="chat-widget__backdrop"
-          type="button"
-          aria-label="Закрыть чат"
-          onClick={() => {
-            setIsOpen(false);
-            setIsStarterVisible(true);
-            window.ThreadsWidget?.hideChat?.();
-          }}
-        />
+        {/*
+          Backdrop is rendered ONLY while StarterChat is visible.
+          When isStarterVisible=false the SDK panel is showing directly;
+          the backdrop (z-index 2147483645) would sit ON TOP of the SDK
+          iframe (z-index 70), blocking all user interaction with the SDK
+          and causing every click to close the chat.
+        */}
         {isStarterVisible ? (
-          <StarterChat
-            onClose={() => {
-              setIsOpen(false);
-              setIsStarterVisible(true);
-              window.ThreadsWidget?.hideChat?.();
-            }}
-            onSubmit={(nextMessage) => {
-              setIsStarterVisible(false);
-              // Delay until after React commits (StarterChat unmounted),
-              // so sendMessageThroughWidget finds only the SDK's input—
-              // not the starter form's input which would cause it to click
-              // the backdrop button instead of the SDK's send button.
-              window.setTimeout(() => {
-                sendMessageThroughWidget(nextMessage);
-              }, 150);
-            }}
-            onAttach={() => {
-              setIsStarterVisible(false);
-              window.setTimeout(triggerSdkAttachButton, 300);
-            }}
-            onVoice={() => {
-              setIsStarterVisible(false);
-              window.setTimeout(triggerSdkMicButton, 300);
-            }}
-          />
+          <>
+            <button
+              className="chat-widget__backdrop"
+              type="button"
+              aria-label="Закрыть чат"
+              onClick={() => {
+                setIsOpen(false);
+                setIsStarterVisible(true);
+                window.ThreadsWidget?.hideChat?.();
+              }}
+            />
+            <StarterChat
+              onClose={() => {
+                setIsOpen(false);
+                setIsStarterVisible(true);
+                window.ThreadsWidget?.hideChat?.();
+              }}
+              onSubmit={(nextMessage) => {
+                setIsStarterVisible(false);
+                // Delay until after React commits (StarterChat unmounted),
+                // so sendMessageThroughWidget finds only the SDK's input—
+                // not the starter form's input which would cause it to click
+                // the backdrop button instead of the SDK's send button.
+                window.setTimeout(() => {
+                  sendMessageThroughWidget(nextMessage);
+                }, 150);
+              }}
+              onAttach={() => {
+                setIsStarterVisible(false);
+                window.setTimeout(triggerSdkAttachButton, 300);
+              }}
+              onVoice={() => {
+                setIsStarterVisible(false);
+                window.setTimeout(triggerSdkMicButton, 300);
+              }}
+            />
+          </>
         ) : null}
       </>
     ) : (
