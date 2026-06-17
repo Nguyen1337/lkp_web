@@ -10,6 +10,15 @@ import cardTroikaActive from '../assets/authorized-home/card-troika-active.png';
 import cardTroikaBlocked from '../assets/authorized-home/card-troika-blocked.png';
 import cardVtActive from '../assets/authorized-home/card-vt-active.png';
 import cardVtBlocked from '../assets/authorized-home/card-vt-blocked.png';
+import carrierSbp from '../assets/authorized-home/carrier-sbp.svg';
+import carrierSocial from '../assets/authorized-home/carrier-social.svg';
+import carrierTroika from '../assets/authorized-home/carrier-troika.svg';
+import carrierVirtualSocial from '../assets/authorized-home/carrier-virtual-social.svg';
+import carrierVirtualTroika from '../assets/authorized-home/carrier-virtual-troika.svg';
+import carrierBankMir from '../assets/authorized-home/carrier-bank-mir.svg';
+import carrierBankVisa from '../assets/authorized-home/carrier-bank-visa.svg';
+import carrierBankMastercard from '../assets/authorized-home/carrier-bank-mastercard.svg';
+import carrierBankUnion from '../assets/authorized-home/carrier-bank-union.svg';
 import feedbackCard from '../assets/public-home/feedback-figma.png';
 import metroLogo from '../assets/public-home/metro-logo.svg';
 import serviceBike from '../assets/public-home/service-bike-figma.png';
@@ -55,6 +64,8 @@ type PaymentMethodView = {
   warning?: string;
   blocked: boolean;
   visualImage?: string;
+  /** Иконка 68×44 носителя (для блока carriers). */
+  carrierIcon?: string;
 };
 
 type HistoryItemView = {
@@ -109,6 +120,23 @@ const subwayLineTypes = new Set<SubwayLineType>([
   'Bus',
   'KM',
 ]);
+
+/** Иконки 68×44 для карт-носителей (carriers/v1.0/linked). */
+const carrierIcons: Partial<Record<PaymentCardType, string>> = {
+  troika: carrierTroika,
+  'virtual-troika': carrierVirtualTroika,
+  social: carrierSocial,
+  'virtual-social': carrierVirtualSocial,
+  sbp: carrierSbp,
+};
+
+/** Иконки 68×44 для банковских карт-носителей — по платёжной системе. */
+const carrierBankIcons: Partial<Record<PaymentSystemType, string>> = {
+  MIR: carrierBankMir,
+  VISA: carrierBankVisa,
+  MASTERCARD: carrierBankMastercard,
+  UNIONPAY: carrierBankUnion,
+};
 
 const paymentCardVisuals: Partial<Record<PaymentCardType, { active: string; blocked: string }>> = {
   sbp: { active: cardSbpActive, blocked: cardSbpBlocked },
@@ -475,20 +503,23 @@ const normalizePaymentMethods = (bootstrap: DashboardBootstrapResponse | null): 
       title: readString(card, ['displayName', 'name', 'title']) ?? (virtualCardInfo ? 'Виртуальная «Тройка»' : 'Моя «Тройка»'),
       type,
       visualImage: getPaymentCardVisual(type, state.blocked),
+      carrierIcon: carrierIcons[type],
     });
   });
 
   bankCards.forEach((item, index) => {
     const state = getCardState(item, item);
+    const paymentSystem = normalizePaymentSystem(readString(item, ['type', 'cardType']));
     methods.push({
       ...state,
       id: readString(item, ['linkedBankCardId', 'externalLinkedBankCardId', 'id']) ?? `bank-${index}`,
       meta: readString(item, ['expiredDate', 'expirationDate']),
-      paymentSystem: normalizePaymentSystem(readString(item, ['type', 'cardType'])),
+      paymentSystem,
       primary: formatBankCardMask(readString(item, ['maskedPan', 'pan', 'number', 'displayName'])),
       secondary: 'Банковская карта',
       title: 'Банковская карта',
       type: 'bank',
+      carrierIcon: paymentSystem ? carrierBankIcons[paymentSystem] : undefined,
     });
   });
 
@@ -602,7 +633,11 @@ const PaymentMethodCard = ({ method }: { method: PaymentMethodView }) => (
           <p>{method.title}</p>
           <strong>{method.primary}</strong>
         </div>
-        <PaymentSystemBadge type={method.paymentSystem ?? 'UNKNOWN'} className="payment-card__bank-system" />
+        {method.carrierIcon ? (
+          <img src={method.carrierIcon} alt={method.paymentSystem ?? ''} className="payment-card__carrier-icon" />
+        ) : (
+          <PaymentSystemBadge type={method.paymentSystem ?? 'UNKNOWN'} className="payment-card__bank-system" />
+        )}
       </div>
     ) : (
       <>
@@ -611,8 +646,8 @@ const PaymentMethodCard = ({ method }: { method: PaymentMethodView }) => (
             <p>{method.title}</p>
             <strong>{method.primary}</strong>
           </div>
-          <div className={`payment-card__visual${method.visualImage ? ' payment-card__visual--with-image' : ''}`} aria-hidden="true">
-            {method.visualImage && <img src={method.visualImage} alt="" />}
+          <div className={`payment-card__visual${(method.carrierIcon ?? method.visualImage) ? ' payment-card__visual--with-image' : ''}`} aria-hidden="true">
+            {(method.carrierIcon ?? method.visualImage) && <img src={method.carrierIcon ?? method.visualImage} alt="" />}
             <span>{method.blocked ? 'Заблокирована' : method.statusText}</span>
           </div>
         </div>

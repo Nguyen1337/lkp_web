@@ -212,6 +212,14 @@
   border-radius: 6px;
 }
 
+.payment-card__carrier-icon {
+  width: 68px;
+  height: 44px;
+  border-radius: 6px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .payment-methods-empty {
   min-height: 60px;
   padding: 8px 12px;
