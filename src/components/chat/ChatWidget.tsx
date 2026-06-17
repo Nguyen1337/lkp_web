@@ -598,6 +598,14 @@ const sendMessageThroughWidget = (message: string) => {
   return false;
 };
 
+// Module-level timestamp: while Date.now() < this value, the polling loop
+// must not call setOpen(false) so transitions from starter → SDK don't race.
+let sdkOpenGracePeriodUntil = 0;
+
+const holdSdkOpenState = (ms = 1500) => {
+  sdkOpenGracePeriodUntil = Date.now() + ms;
+};
+
 const startWidgetOpenStateSync = (setOpen: (isOpen: boolean) => void) => {
   const unwrapWidgetMethods = wrapWidgetOpenMethods(setOpen);
 
@@ -606,7 +614,13 @@ const startWidgetOpenStateSync = (setOpen: (isOpen: boolean) => void) => {
   const intervalId = window.setInterval(() => {
     injectWidgetCompatibilityStyles();
     hideSdkInviteArtifacts();
-    setOpen(readChatOpenState());
+    const isOpen = readChatOpenState();
+    // During the grace period after a starter→SDK transition, never let the
+    // poll force the chat closed; it will self-correct once the SDK is visible.
+    if (!isOpen && Date.now() < sdkOpenGracePeriodUntil) {
+      return;
+    }
+    setOpen(isOpen);
   }, 150);
 
   window.ThreadsWidget?.onHideChat?.(() => {
@@ -940,6 +954,7 @@ export const ChatWidget = ({ clientId, isAuthenticated = false }: ChatWidgetProp
               window.ThreadsWidget?.hideChat?.();
             }}
             onSubmit={(nextMessage) => {
+              holdSdkOpenState(2000);
               setIsStarterVisible(false);
               window.ThreadsWidget?.showChat?.();
               window.setTimeout(() => {
@@ -947,11 +962,13 @@ export const ChatWidget = ({ clientId, isAuthenticated = false }: ChatWidgetProp
               }, 150);
             }}
             onAttach={() => {
+              holdSdkOpenState(2000);
               setIsStarterVisible(false);
               window.ThreadsWidget?.showChat?.();
               window.setTimeout(triggerSdkAttachButton, 300);
             }}
             onVoice={() => {
+              holdSdkOpenState(2000);
               setIsStarterVisible(false);
               window.ThreadsWidget?.showChat?.();
               window.setTimeout(triggerSdkMicButton, 300);
