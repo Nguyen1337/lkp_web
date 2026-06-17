@@ -520,6 +520,48 @@ const wrapWidgetOpenMethods = (setOpen: (isOpen: boolean) => void) => {
   };
 };
 
+const triggerSdkAttachButton = () => {
+  const widgetDocuments = getWidgetDocuments();
+
+  for (const targetDocument of widgetDocuments) {
+    const fileInput = targetDocument.querySelector('input[type="file"]') as HTMLInputElement | null;
+    if (fileInput) {
+      fileInput.click();
+      return true;
+    }
+
+    const buttons = Array.from(targetDocument.querySelectorAll<HTMLButtonElement>('button'));
+    const attachBtn = buttons.find((btn) =>
+      /attach|clip|файл|paper/i.test(`${btn.className} ${btn.title} ${btn.getAttribute('aria-label') ?? ''}`),
+    );
+
+    if (attachBtn) {
+      attachBtn.click();
+      return true;
+    }
+  }
+
+  return false;
+};
+
+const triggerSdkMicButton = () => {
+  const widgetDocuments = getWidgetDocuments();
+
+  for (const targetDocument of widgetDocuments) {
+    const buttons = Array.from(targetDocument.querySelectorAll<HTMLButtonElement>('button'));
+    const micBtn = buttons.find((btn) =>
+      /micro|voice|audio|mic|голос/i.test(`${btn.className} ${btn.title} ${btn.getAttribute('aria-label') ?? ''}`),
+    );
+
+    if (micBtn) {
+      micBtn.click();
+      return true;
+    }
+  }
+
+  return false;
+};
+
 const sendMessageThroughWidget = (message: string) => {
   const trimmedMessage = message.trim();
   const widgetDocuments = getWidgetDocuments();
@@ -690,9 +732,11 @@ const LoadingIcon = () => <span className="chat-widget__loader" aria-hidden="tru
 type StarterChatProps = {
   onClose: () => void;
   onSubmit: (message: string) => void;
+  onAttach: () => void;
+  onVoice: () => void;
 };
 
-const StarterChat = ({ onClose, onSubmit }: StarterChatProps) => {
+const StarterChat = ({ onClose, onSubmit, onAttach, onVoice }: StarterChatProps) => {
   const [message, setMessage] = useState('');
   const timeLabel = getCurrentTimeLabel();
 
@@ -755,12 +799,17 @@ const StarterChat = ({ onClose, onSubmit }: StarterChatProps) => {
           placeholder="Ваше сообщение..."
           aria-label="Ваше сообщение"
         />
-        <button className="chat-widget__starter-action" type="button" aria-label="Прикрепить файл">
+        <button className="chat-widget__starter-action" type="button" aria-label="Прикрепить файл" onClick={onAttach}>
           <svg viewBox="0 0 20 20" aria-hidden="true">
             <path d="M7.25 10.75L11.9 6.1C12.75 5.25 14.13 5.25 14.98 6.1C15.83 6.95 15.83 8.33 14.98 9.18L8.78 15.38C7.48 16.68 5.37 16.68 4.07 15.38C2.77 14.08 2.77 11.97 4.07 10.67L10.35 4.39" />
           </svg>
         </button>
-        <button className="chat-widget__starter-action" type={message.trim() ? 'submit' : 'button'} aria-label={message.trim() ? 'Отправить' : 'Голосовое сообщение'}>
+        <button
+          className="chat-widget__starter-action"
+          type={message.trim() ? 'submit' : 'button'}
+          aria-label={message.trim() ? 'Отправить' : 'Голосовое сообщение'}
+          onClick={message.trim() ? undefined : onVoice}
+        >
           {message.trim() ? (
             <svg viewBox="0 0 20 20" aria-hidden="true">
               <path d="M3.5 10L16.5 3.5L12.25 16.5L9.7 10.3L3.5 10Z" />
@@ -892,7 +941,20 @@ export const ChatWidget = ({ clientId, isAuthenticated = false }: ChatWidgetProp
             }}
             onSubmit={(nextMessage) => {
               setIsStarterVisible(false);
-              sendMessageThroughWidget(nextMessage);
+              window.ThreadsWidget?.showChat?.();
+              window.setTimeout(() => {
+                sendMessageThroughWidget(nextMessage);
+              }, 150);
+            }}
+            onAttach={() => {
+              setIsStarterVisible(false);
+              window.ThreadsWidget?.showChat?.();
+              window.setTimeout(triggerSdkAttachButton, 300);
+            }}
+            onVoice={() => {
+              setIsStarterVisible(false);
+              window.ThreadsWidget?.showChat?.();
+              window.setTimeout(triggerSdkMicButton, 300);
             }}
           />
         ) : null}
